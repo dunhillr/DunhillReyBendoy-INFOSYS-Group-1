@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Models\Product;
+use App\Models\Category;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 
 class ProductController extends Controller
 {
@@ -14,10 +15,10 @@ class ProductController extends Controller
     public function index()
     {
          // fetch all products from the database
-        $products = \App\Models\Product::all();
+        $products = Product::all();
 
         // return them to a view
-        return view('products.index', compact('products'));
+        return view('products.product', compact('products'));
     }
 
     /**
@@ -25,27 +26,34 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('products.create');
+        // Fetch all categories to populate a dropdown in the form
+        $categories = Category::all();
+
+        // Pass them to the view
+        return view('products.create', compact('categories'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        // Validate input
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'quantity' => 'required|integer|min:0',
-        'price' => 'required|numeric|min:0',
+
+    // Find category or create a new one, using the validated data
+    $category = Category::firstOrCreate([
+        'name' => $request->validated('category')
     ]);
 
-    // Save product
-    \App\Models\Product::create($request->all());
+    // Create product and associate it with the category
+    $category->products()->create([
+        'name' => $request->validated('name'),
+        'description' => $request->validated('description'),
+        'quantity' => $request->validated('quantity'),
+        'price' => $request->validated('price'),
+    ]);
 
     // Redirect back to list with success message
-    return redirect()->route('products.index')->with('success', 'Product added successfully!');
+    return redirect()->route('products.product')->with('success', 'Product added successfully!');
     }
 
     /**
@@ -61,25 +69,22 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        return view('products.edit', compact('product')); // pass it to the edit.blade.php
+        $categories = Category::all();
+
+        return view('products.edit', compact('product', 'categories'));
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        $request->validate([
-        'name' => 'required',
-        'description' => 'nullable',
-        'quantity' => 'required|integer',
-        'price' => 'required|numeric',
-    ]);
-
-        $product->update($request->all()); // mass assignment (make sure fillable is set)
+        // Use the validated quantity from the form request.
+        // The 'quantity' input should represent the amount sold, which is then added to the stock.
+        $product->increment('quantity', $request->validated('quantity'));
     
-        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+        return redirect()->route('products.product')->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -89,6 +94,6 @@ class ProductController extends Controller
     {
         $product->delete();
 
-        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+        return redirect()->route('products.product')->with('success', 'Product deleted successfully.');
     }
 }
