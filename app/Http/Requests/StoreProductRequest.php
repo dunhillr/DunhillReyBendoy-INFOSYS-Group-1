@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Rules\CompositeUnique;
 
 class StoreProductRequest extends FormRequest
 {
@@ -22,11 +24,17 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-        'name' => 'required|string|min:2|max:255',
-        'description' => 'required|string',
-        'quantity' => 'required|integer|min:0|max:9999999',
-        'price' => 'required|numeric|min:0|max:9999999',
-        'category' => 'required|string|max:255',
-    ];
+            'name' => [
+                'required',
+                'string',
+                'min:2',
+                'max:255',
+                new CompositeUnique('products', ['name', 'net_weight', 'net_weight_unit_id', 'category_id'])
+            ],
+            'net_weight' => ['required', 'numeric', 'min:0', 'max:9999999'],
+            'net_weight_unit_id' => ['required', 'integer', 'exists:units,id'],
+            'price' => ['required', 'numeric', 'min:0', 'max:9999999'],
+            'category' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+        ];
     }
 }

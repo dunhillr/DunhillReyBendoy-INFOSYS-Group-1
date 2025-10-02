@@ -7,12 +7,17 @@
                 <a href="{{ route('products.index') }}" class="btn btn-secondary btn-sm">Back</a>
             </div>
             <ul class="list-group list-group-flush">
+
                 @foreach($categories as $cat)
-                    <a href="{{ route('products.index', ['category_id' => $cat->id]) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        {{ $cat->name }}
+                    <a href="{{ route('products.index', ['category_id' => $cat->id]) }}"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                        data-category-id="{{ $cat->id }}"
+                        data-category-name="{{ $cat->name }}">
+                            {{ $cat->name }}
                         <span class="badge bg-primary rounded-pill">{{ $cat->products_count }}</span>
                     </a>
                 @endforeach
+
             </ul>
         </div>
     @else

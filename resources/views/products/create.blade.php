@@ -1,11 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Product</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 p-6">
-    <div class="container my-5">
+<x-app-layout>
+    <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card shadow-sm">
@@ -26,37 +20,40 @@
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-
                             </div>
 
-                            <!-- Description -->
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea name="description"
-                                    id="description"
-                                    class="form-control @error('description') is-invalid @enderror">
-                                </textarea>
-
-                                @error('description')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-
+                            <!-- Net Weight and Unit -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-8">
+                                    <label for="net_weight" class="form-label">Net Weight</label>
+                                    <input type="number"
+                                        step="any"
+                                        name="net_weight"
+                                        id="net_weight"
+                                        class="form-control @error('net_weight') is-invalid @enderror"
+                                        value="{{ str(old('net_weight'))->squish() }}">
+                                    @error('net_weight')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-4">
+                                    <label for="net_weight_unit_id" class="form-label">Unit</label>
+                                    <select name="net_weight_unit_id"
+                                        id="net_weight_unit_id"
+                                        class="form-select @error('net_weight_unit_id') is-invalid @enderror">
+                                        <option value="">Select...</option>
+                                        @foreach($units as $unit)
+                                            <option value="{{ $unit->id }}" {{ old('net_weight_unit_id') == $unit->id ? 'selected' : '' }}>
+                                                {{ $unit->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('net_weight_unit_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
-
-                            <!-- Quantity -->
-<!--                           <div class="mb-3">
-                                <label for="quantity" class="form-label">Quantity</label>
-                                <input type="number"
-                                    name="quantity"
-                                    id="quantity"
-                                    class="form-control @error('quantity') is-invalid @enderror">
-
-                                @error('quantity')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                
-                            </div>
--->
+                            
                             <!-- Price -->
                             <div class="mb-3">
                                 <label for="price" class="form-label">Price</label>
@@ -70,7 +67,6 @@
                                 @error('price')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-
                             </div>
 
                             <!-- ✅ Category Dropdown -->
@@ -92,9 +88,7 @@
                                 @error('category')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                
                             </div>
-
 
                             <div class="d-flex justify-content-between">
                                 <a href="{{ route('products.index') }}" onclick="window.history.back(); return false;" class="btn btn-secondary">
@@ -111,6 +105,15 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    @if(session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: "{{ session('error') }}",
+            });
+        });
+    </script>
+    @endif
+</x-app-layout>

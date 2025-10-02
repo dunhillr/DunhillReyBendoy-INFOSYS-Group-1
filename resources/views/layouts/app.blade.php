@@ -7,10 +7,13 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
-        <!-- Add Bootstrap 5 CSS via CDN -->
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <!-- SweetAlert2 CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+        
+        <!-- Add jQuery UI CSS Here -->
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
         <!-- Optional: Custom CSS for specific dark mode styling, if needed -->
         <style>
@@ -21,20 +24,42 @@
             .dark-mode .bg-white {
                 background-color: #1f2937 !important; /* dark:bg-gray-800 equivalent */
             }
+            .ui-autocomplete {
+                z-index: 9999 !important;
+                background: #fff;
+                border: 1px solid #ddd;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+        
+            .ui-menu-item-wrapper {
+                padding: 8px 12px;
+                cursor: pointer;
+            }
+        
+            .ui-menu-item-wrapper:hover,
+            .ui-menu-item-wrapper.ui-state-active {
+                background: #0d6efd; /* Matches Bootstrap primary */
+                color: white;
+            }
+            
         </style>
     </head>
     <body class="font-sans antialiased">
         <div class="min-vh-100 bg-light">
-        <!-- This is where the Bootstrap navigation bar will be included -->
-        @include('layouts.navigation')
+            @include('layouts.navigation')
 
-        <!-- Page Content -->
-        <main>
-            {{ $slot }}
-        </main>
-    </div>
+            <!-- Page Content -->
+            <main>
+                {{ $slot }}
+            </main>
+        </div>
 
-        <!-- Add Bootstrap 5 JS via CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <!-- Consolidate Scripts and ensure correct order -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="//code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        @stack('scripts')
     </body>
 </html>

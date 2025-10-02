@@ -1,83 +1,139 @@
 <x-app-layout>
-
     <div class="container py-5">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="mb-0">All Products</h1>
-            <a href="{{ route('products.create') }}" class="btn btn-success">
-                + Add Product
-            </a>
-        </div>
+        <div class="row g-3">
+            <!-- Sidebar Column -->
+            <x-product-sidebar :categories="$categories" :show-categories="$showCategories" />
 
-      <div class="row g-3">
-        @foreach ($products as $product)
-          <div class="col-6 col-md-3"> <!-- 4 boxes per row -->
-            <div class="card h-100 shadow-sm text-center"
-                  data-bs-toggle="modal"
-                  data-bs-target="#productModal{{ $product->id }}">
-              
-              <!-- Center product image -->
-<!--              <div class="d-flex justify-content-center mt-3">
-                <img src="{{ $product->image ?? 'https://via.placeholder.com/120' }}"
-                      class="card-img-top"
-                      alt="{{ $product->name }}"
-                      style="width:120px; height:120px; object-fit:cover;">
-              </div>
--->
-              <div class="card-body p-2">
-                <h6 class="card-title mb-1">{{ $product->name }}</h6>
-                <p class="text-muted small mb-0">${{ $product->price }}</p>
-
-<!--                <p class="text-muted small mb-0">Quantity Sold: {{ $product->quantity }}</p>
--->
-                <p class="text-muted small mb-0">{{ $product->description }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Modal -->
-          <div class="modal fade" id="productModal{{ $product->id }}" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{{ $product->name }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                  <!-- Product Image -->
-<!--                  <img src="{{ $product->image ?? 'https://via.placeholder.com/200' }}"
-                        class="img-fluid mb-3"
-                        style="max-height:200px; object-fit:cover;">
--->
-                  <!-- Description -->
-                  <p>{{ $product->description }}</p>
-
-                  <!-- Form to update quantity sold -->
-<!--                  <form action="{{ route('products.update', $product->id) }}" method="POST" class="mb-3">
-                    @csrf
-                    @method('PUT')
-                    <div class="mb-3">
-                      <label for="quantity{{ $product->id }}" class="form-label">Quantity Sold</label>
-                      <input type="number" name="quantity" id="quantity{{ $product->id }}" class="form-control">
+            <!-- Main Content Column -->
+            <div class="col-md-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="mb-0">
+                            @if(request()->has('category_id'))
+                                {{ $category->name }} Products
+                            @else
+                                All Products
+                            @endif
+                        </h1>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Save</button>
-                  </form>
--->
-                  <!-- Edit / Delete Buttons -->
-                  <div class="d-flex justify-content-between">
-                    <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning">Edit</a>
-
-                    <form action="{{ route('products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Are you sure?');">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                  </div>
-
+                    <a href="{{ route('products.create') }}" class="btn btn-success">
+                        + Add Product
+                    </a>
                 </div>
-              </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <table id="products-table" class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Product ID</th>
+                                    <th>Name</th>
+                                    <th>Net Weight</th>
+                                    <th>Unit</th>
+                                    <th>Price</th>
+                                    <th>Category</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- DataTables will populate this table body via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-          </div>
-        @endforeach
-      </div>
+        </div>
     </div>
+    
+    @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
+    
+    <script>
+        $(function() {
+            // Declare productsTable in a wider scope
+            let productsTable;
+
+            const getCategoryId = () => new URLSearchParams(window.location.search).get('category_id');
+
+            // Assign the DataTable instance to the productsTable variable
+            productsTable = $('#products-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{!! route('products.data') !!}',
+                    cache: false,
+                    data: function(d) {
+                        const categoryId = getCategoryId();
+                        if (categoryId) {
+                            d.category_id = categoryId;
+                        } else {
+                            d.category_id = null;
+                        }
+                    }
+                },
+                columns: [
+                    { data: 'id', name: 'id' },
+                    { data: 'id', name: 'id' },
+                    { data: 'name', name: 'name' },
+                    { data: 'net_weight', name: 'net_weight' },
+                    { data: 'net_weight_unit', name: 'net_weight_unit' },
+                    { data: 'price', name: 'price' },
+                    { data: 'category_name', name: 'category_name' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                ]
+            });
+
+            // Function to set the active state on the correct link and update the title
+            function setActiveCategoryAndTitle() {
+                const activeId = getCategoryId();
+                $('.list-group-item').removeClass('active');
+                if (activeId) {
+                    const activeLink = $(`.list-group-item[data-category-id="${activeId}"]`);
+                    activeLink.addClass('active');
+                    const categoryName = activeLink.data('categoryName');
+                    $('h1.mb-0').text(categoryName + ' Products');
+                } else {
+                    $('h1.mb-0').text('All Products');
+                }
+            }
+
+            // Run on page load
+            setActiveCategoryAndTitle();
+
+            // Event listener for category links
+            $(document).on('click', '.list-group-item', function(event) {
+                event.preventDefault();
+
+                const categoryId = $(this).data('categoryId');
+                const newUrl = categoryId ? `?category_id=${categoryId}` : '/products';
+                history.pushState(null, '', newUrl);
+
+                // Update active state and title
+                setActiveCategoryAndTitle();
+
+                // Reload the DataTable with the new filter
+                productsTable.ajax.reload();
+            });
+
+            // Handle browser's back/forward buttons
+            $(window).on('popstate', function() {
+                setActiveCategoryAndTitle();
+                productsTable.ajax.reload();
+            });
+
+            // Handle "Back" link in the sidebar with full page reload
+            $(document).on('click', '.card-header a', function(event) {
+                if ($(this).text().trim() === 'Back') {
+                    event.preventDefault();
+                    window.location.href = $(this).attr('href'); // Force full reload
+                }
+            });
+        });
+        console.log("✅ Autocomplete script loaded");
+    </script>
+    @endpush
 </x-app-layout>

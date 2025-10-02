@@ -2,35 +2,81 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Unit;
+use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
+
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-         // fetch all products from the database
-        $products = Product::all();
+        $categories = Category::has('products')->withCount('products')->get();
+        $showCategories = $request->has('show_categories') || $request->has('category_id');
 
-        // return them to a view
-        return view('products.product', compact('products'));
+        // Fetch the category if a category_id is present
+        $category = null;
+            if ($request->has('category_id')) {
+                $category = Category::find($request->category_id);
+            }
+
+        return view('products.product', compact('categories', 'showCategories', 'category'));
+
     }
+
+/*    public function byCategory(Category $category)
+    {
+        $categories = Category::has('products')->withCount('products')->get();
+        $showCategories = true;
+
+        return view('products.product', compact('categories', 'showCategories', 'category'));
+    }
+
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        // Fetch all categories to populate a dropdown in the form
+        // Fetch all categories and units to populate dropdowns
         $categories = Category::all();
+        $units = Unit::all(); // <-- The $units variable is defined here
 
         // Pass them to the view
-        return view('products.create', compact('categories'));
+        return view('products.create', compact('categories', 'units'));
+    }
+
+    //Controller for Autocomplete
+    public function search(Request $request)
+    {
+        $searchTerm = $request->get('query');
+        $products = Product::with('unit:id,name')
+            ->where('name', 'like', "%{$searchTerm}%")
+            ->orWhere('id', 'like', "%{$searchTerm}%")
+            ->select('id', 'name', 'price', 'net_weight', 'net_weight_unit_id')
+            ->get();
+
+        // Format the products for the autocomplete on the server
+        return response()->json(
+            $products->map(function ($product) {
+                return [
+                    'label' => $product->name . " (ID: {$product->id})",
+                    'value'=> $product->name,
+                    'id' => $product->id,
+                    'price' => $product->price,
+                    'net_weight' => $product->net_weight,
+                    'net_weight_unit_name' => optional($product->unit)->name
+                ];
+            })->values()->toArray()
+        );
     }
 
     /**
@@ -39,29 +85,29 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
 
-    // Find category or create a new one, using the validated data
-    $category = Category::firstOrCreate([
-        'name' => $request->validated('category')
-    ]);
+        try {
+            $category = Category::firstOrCreate([
+                'name' => $request->validated('category')
+            ]);
 
-    // Create product and associate it with the category
-    $category->products()->create([
-        'name' => $request->validated('name'),
-        'description' => $request->validated('description'),
-        'quantity' => $request->validated('quantity'),
-        'price' => $request->validated('price'),
-    ]);
+            $category->products()->create([
+                'name' => $request->validated('name'),
+                'net_weight' => $request->validated('net_weight'),
+                'net_weight_unit_id' => $request->validated('net_weight_unit_id'), // Corrected key
+                'price' => $request->validated('price'),
+            ]);
 
-    // Redirect back to list with success message
-    return redirect()->route('products.product')->with('success', 'Product added successfully!');
+            return redirect()->route('products.index')->with('success', 'Product added successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'A product with this combination of attributes already exists.')->withInput();
+        }
     }
-
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Product $product)
     {
-        //
+        return view('products.show', compact('product'));
     }
 
     /**
@@ -70,8 +116,9 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::all();
+        $units = Unit::all(); // <-- Fetch units here
 
-        return view('products.edit', compact('product', 'categories'));
+        return view('products.edit', compact('product', 'categories', 'units'));
     }
 
 
@@ -80,11 +127,25 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
-        // Use the validated quantity from the form request.
-        // The 'quantity' input should represent the amount sold, which is then added to the stock.
-        $product->increment('quantity', $request->validated('quantity'));
-    
-        return redirect()->route('products.product')->with('success', 'Product updated successfully.');
+        $category = Category::firstOrCreate([
+            'name' => $request->validated()['category']
+        ]);
+
+        // Update the product, and use the category ID from the new or existing category
+        $product->update([
+            'name' => $request->validated('name'),
+            'net_weight' => $request->validated('net_weight'),
+            'net_weight_unit_id' => $request->validated('net_weight_unit_id'),
+            'price' => $request->validated('price'),
+            'category_id' => $category->id,
+        ]);
+
+        // Check for the 'stay' parameter in the request
+        if ($request->has('stay')) {
+            return redirect()->back()->with('success', 'Product updated successfully!');
+        }
+
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -94,6 +155,36 @@ class ProductController extends Controller
     {
         $product->delete();
 
-        return redirect()->route('products.product')->with('success', 'Product deleted successfully.');
+        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
+
+    public function getData(Request $request)
+    {
+        $products = Product::with(['category', 'unit'])->select('products.*');
+    
+        // Check if a category_id filter is present and not empty
+        if ($request->has('category_id') && !empty($request->category_id)) {
+            $products->where('category_id', $request->category_id);
+        }
+    
+        return DataTables::of($products)
+            ->addColumn('category_name', function (Product $product) {
+                return $product->category ? $product->category->name : 'N/A';
+            })
+            ->addColumn('net_weight_unit', function (Product $product) {
+                return $product->unit ? $product->unit->name : '';
+            })
+            ->addColumn('actions', function (Product $product) {
+                $editBtn = '<a href="' . route('products.edit', $product->id) . '" class="btn btn-warning btn-sm">Edit</a>';
+                $deleteForm = '<form action="' . route('products.destroy', $product->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Are you sure?\');">'
+                            . csrf_field()
+                            . method_field('DELETE')
+                            . '<button type="submit" class="btn btn-danger btn-sm">Delete</button>'
+                            . '</form>';
+                return $editBtn . ' ' . $deleteForm;
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
 }

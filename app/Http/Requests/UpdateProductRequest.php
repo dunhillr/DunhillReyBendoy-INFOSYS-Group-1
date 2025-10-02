@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -24,10 +25,10 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             'name' => 'required|string|min:2|max:255',
-            'description' => 'required|string',
-            'quantity' => 'required|integer|min:0|max:9999999',
+            'net_weight' => ['required', 'numeric', 'min:0', 'max:9999999'],
+            'net_weight_unit_id' => ['required', 'integer', 'exists:units,id'],
             'price' => 'required|numeric|min:0|max:9999999',
-            'category_id' => 'required|exists:categories,id',
+            'category' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
         ];
     }
 }
