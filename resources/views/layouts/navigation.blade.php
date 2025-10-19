@@ -30,17 +30,19 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link @if(request()->routeIs('sales.create')) active @endif" href="{{ route('sales.create') }}" @if(request()->routeIs('sales.create')) aria-current="page" @endif>
+                    <a class="nav-link @if(request()->routeIs('record-sales.create')) active @endif" href="{{ route('record-sales.create') }}" @if(request()->routeIs('record-sales.create')) aria-current="page" @endif>
                         Record Sale
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('sales.history') }}">Sales History</a>
+                    <a class="nav-link" href="{{ route('transactions.index') }}">Transactions</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('reports.topSelling', 'weekly') }}">Top Selling</a>
+                    <a class="nav-link" href="{{ route('reports.sales-overview') }}">
+                        Sales Overview
+                    </a>
                 </li>
 
 

@@ -3,13 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Transaction extends Model
 {
-    protected $fillable = ['product_id', 'quantity', 'price'];
+    protected $fillable = [
+        'total_amount',
+        'payment_amount',
+    ];
 
-    public function product()
+    // A transaction has many transaction details (products sold)
+    public function details(): HasMany
     {
-        return $this->belongsTo(Product::class);
+        return $this->hasMany(TransactionDetail::class);
     }
 }

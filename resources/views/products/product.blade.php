@@ -87,6 +87,41 @@
                 ]
             });
 
+// ✅ Delete Product Confirmation
+$(document).on('click', '.delete-product', function () {
+    const productId = $(this).data('id');
+
+    Swal.fire({
+        icon: 'warning',
+        title: 'Delete Product?',
+        text: 'This action cannot be undone.',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Delete',
+        cancelButtonText: 'No, Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: "{{ url('products') }}/" + productId,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    _method: 'DELETE'
+                },
+                success: function (response) {
+                    Swal.fire('Deleted!', response.message, 'success');
+                    $('#products-table').DataTable().ajax.reload(null, false); // Reload without page refresh
+                },
+                error: function (xhr) {
+                    const errorMsg = xhr.responseJSON?.message || 'An error occurred.';
+                    Swal.fire('Error', errorMsg, 'error');
+                }
+            });
+        }
+    });
+});
+
+
+
             // Function to set the active state on the correct link and update the title
             function setActiveCategoryAndTitle() {
                 const activeId = getCategoryId();

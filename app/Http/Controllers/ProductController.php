@@ -31,19 +31,7 @@ class ProductController extends Controller
         return view('products.product', compact('categories', 'showCategories', 'category'));
 
     }
-
-/*    public function byCategory(Category $category)
-    {
-        $categories = Category::has('products')->withCount('products')->get();
-        $showCategories = true;
-
-        return view('products.product', compact('categories', 'showCategories', 'category'));
-    }
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
+    
     public function create()
     {
         // Fetch all categories and units to populate dropdowns
@@ -153,9 +141,22 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        $product->delete();
+        try {
+            $product->delete();
 
-        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+        if (request()->ajax()) {
+            return response()->json(['message' => 'Product deleted successfully.']);
+        }
+
+        return redirect()->back()->with('success', 'Product deleted successfully.');
+
+        } catch (\Illuminate\Database\QueryException $e) {
+        if (request()->ajax()) {
+            return response()->json(['message' => 'Cannot delete this product because it is associated with past transactions.'], 409);
+        }
+
+            return redirect()->back()->with('error', 'Cannot delete this product because it is associated with past transactions.');
+        }
     }
 
     public function getData(Request $request)
@@ -175,16 +176,17 @@ class ProductController extends Controller
                 return $product->unit ? $product->unit->name : '';
             })
             ->addColumn('actions', function (Product $product) {
-                $editBtn = '<a href="' . route('products.edit', $product->id) . '" class="btn btn-warning btn-sm">Edit</a>';
-                $deleteForm = '<form action="' . route('products.destroy', $product->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Are you sure?\');">'
-                            . csrf_field()
-                            . method_field('DELETE')
-                            . '<button type="submit" class="btn btn-danger btn-sm">Delete</button>'
-                            . '</form>';
-                return $editBtn . ' ' . $deleteForm;
+                return '
+                    <a href="' . route('products.edit', $product->id) . '" class="btn btn-warning btn-sm">Edit</a>
+                    <button class="btn btn-danger btn-sm delete-product" data-id="'.$product->id.'">Delete</button>
+                ';
             })
+
             ->rawColumns(['actions'])
             ->make(true);
     }
+    
+
+    
 
 }
