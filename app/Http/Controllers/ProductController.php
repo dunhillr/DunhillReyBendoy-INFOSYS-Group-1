@@ -141,22 +141,14 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        try {
-            $product->delete();
-
+        $product->is_active = 0;
+        $product->save();
+        
         if (request()->ajax()) {
-            return response()->json(['message' => 'Product deleted successfully.']);
+            return response()->json(['message' => 'Product archived successfully.']);
         }
-
-        return redirect()->back()->with('success', 'Product deleted successfully.');
-
-        } catch (\Illuminate\Database\QueryException $e) {
-        if (request()->ajax()) {
-            return response()->json(['message' => 'Cannot delete this product because it is associated with past transactions.'], 409);
-        }
-
-            return redirect()->back()->with('error', 'Cannot delete this product because it is associated with past transactions.');
-        }
+    
+        return redirect()->back()->with('success', 'Product archived successfully.');
     }
 
     public function getData(Request $request)
@@ -186,7 +178,48 @@ class ProductController extends Controller
             ->make(true);
     }
     
-
+    // Show archived products (is_active = 0)
+    public function archived()
+    {
+        $categories = Category::has('products')->withCount('products')->get();
     
+        $archivedProducts = Product::with(['category', 'unit'])
+            ->where('is_active', 0)
+            ->get();
+    
+        return view('products.archived', compact('archivedProducts', 'categories'));
+    }
+    
+    // Restore a previously archived product
+    public function restore($id)
+    {
+        $product = Product::withoutGlobalScope('active')->findOrFail($id);
+
+        $product->is_active = 1;
+        $product->save();
+
+        return response()->json(['message' => 'Product restored successfully!']);
+    }
+    
+    public function getArchivedData(Request $request)
+    {
+        $products = Product::withoutGlobalScopes() // 👈 disables the default "active only" filter
+        ->with(['category', 'unit'])
+        ->where('is_active', 0)
+        ->select('products.*');
+
+    return DataTables::of($products)
+        ->addColumn('category_name', fn($p) => $p->category->name ?? 'N/A')
+        ->addColumn('unit_name', fn($p) => $p->unit->name ?? '')
+        ->addColumn('net_weight_unit', fn($p) => $p->unit->name ?? '')
+        ->addColumn('actions', fn($p) => '
+            <button class="btn btn-success btn-sm restore-product" data-id="' . $p->id . '">
+                Restore
+            </button>
+        ')
+        ->rawColumns(['actions'])
+        ->make(true);
+
+}
 
 }

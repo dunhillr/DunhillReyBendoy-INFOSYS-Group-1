@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // resources/js/app.js
 
 import Alpine from 'alpinejs';
@@ -27,3 +28,12 @@ import 'datatables.net-bs5/js/dataTables.bootstrap5.js';
 window.Alpine = Alpine;
 Alpine.start();
 
+=======
+import './bootstrap';
+
+import Alpine from 'alpinejs';
+
+window.Alpine = Alpine;
+
+Alpine.start();
+>>>>>>> local-fix

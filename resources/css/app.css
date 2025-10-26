@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+<<<<<<< HEAD
 
 /* Style for the hover effect (optional, Bootstrap may already provide this) */
 .list-group-item:hover {
@@ -12,3 +13,5 @@
     background-color: #0d6efd; /* Use a color from Bootstrap's theme */
     color: #fff; /* White text for contrast */
 }
+=======
+>>>>>>> local-fix
