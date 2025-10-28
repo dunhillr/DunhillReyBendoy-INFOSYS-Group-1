@@ -1,3 +1,12 @@
+@push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+@endpush
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@endpush
+
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -124,7 +133,7 @@
             $('#filter-btn').on('click', function () {
                 table.draw();
             });
-            
+
             $('#clear-filter-btn').on('click', function () {
                 $('#from-date').val('');
                 $('#to-date').val('');

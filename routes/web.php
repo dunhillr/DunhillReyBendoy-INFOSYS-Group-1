@@ -6,6 +6,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SaleOverviewController;
+use App\Http\Controllers\DashboardController;
 
 // --- Public route (redirect guests to login) ---
 Route::get('/', function () {
@@ -15,10 +16,13 @@ Route::get('/', function () {
 // --- Routes that require authentication ---
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // --- Dashboard ---
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+     // --- Dashboard ---
+    // Displays the main dashboard (differentiates between admin and regular user).
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // API endpoint to fetch sales data for charts.
+    Route::get('/dashboard/sales-data', [DashboardController::class, 'salesData'])->name('dashboard.sales-data');
+    // API endpoint to fetch top selling products data for charts.
+    Route::get('/dashboard/top-selling-products', [DashboardController::class, 'topSellingProducts'])->name('dashboard.top-selling-products');
 
     // --- Product Routes ---
     Route::prefix('products')->name('products.')->group(function () {
