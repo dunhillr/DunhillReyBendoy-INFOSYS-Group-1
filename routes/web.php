@@ -28,6 +28,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('products')->name('products.')->group(function () {
         Route::get('data', [ProductController::class, 'getData'])->name('data');
         Route::get('search', [ProductController::class, 'search'])->name('search');
+
+        Route::post('{id}/restore', [ProductController::class, 'restore'])->name('restore');
+
+        Route::get('archived', [ProductController::class, 'archived'])->name('archived');
+        Route::get('archived/data', [ProductController::class, 'getArchivedData'])->name('archived.data');
     });
 
     // --- Record-Sales Routes ---
