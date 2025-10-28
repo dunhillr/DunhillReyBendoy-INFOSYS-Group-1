@@ -16,7 +16,7 @@ Route::get('/', function () {
 // --- Routes that require authentication ---
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // --- Dashboard ---
+     // --- Dashboard ---
     // Displays the main dashboard (differentiates between admin and regular user).
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     // API endpoint to fetch sales data for charts.
