@@ -34,7 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/record-sales/create', [SaleController::class, 'create'])->name('record-sales.create');
     Route::post('/record-sales/store', [SaleController::class, 'store'])->name('record-sales.store');
 
-    
+
     // --- Transaction (Invoice) Routes ---
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
@@ -45,7 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{transaction}/invoice', [TransactionController::class, 'invoice'])->name('invoice');
         Route::delete('/{transaction}', [TransactionController::class, 'destroy'])->name('destroy');
     });
-    
+
     // --- Reports / Sales Overview ---
     Route::get('/sales-overview', [SaleOverviewController::class, 'index'])->name('reports.sales-overview');
     Route::get('/sales-overview/data', [SaleOverviewController::class, 'getData'])->name('reports.sales-data');
