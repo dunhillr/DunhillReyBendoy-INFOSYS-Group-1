@@ -19,7 +19,7 @@
 
         <!-- SweetAlert2 CSS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-        
+
         <!-- Add jQuery UI CSS Here -->
         <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
@@ -39,18 +39,18 @@
                 max-height: 200px;
                 overflow-y: auto;
             }
-        
+
             .ui-menu-item-wrapper {
                 padding: 8px 12px;
                 cursor: pointer;
             }
-        
+
             .ui-menu-item-wrapper:hover,
             .ui-menu-item-wrapper.ui-state-active {
                 background: #0d6efd; /* Matches Bootstrap primary */
                 color: white;
             }
-            
+
         </style>
     </head>
     <body class="font-sans antialiased">
@@ -67,8 +67,6 @@
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script src="//code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
         @stack('scripts')
     </body>

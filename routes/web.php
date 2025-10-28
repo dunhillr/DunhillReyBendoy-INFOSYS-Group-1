@@ -6,6 +6,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SaleOverviewController;
+use App\Http\Controllers\DashboardController;
 
 // --- Public route (redirect guests to login) ---
 Route::get('/', function () {
@@ -16,9 +17,12 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // --- Dashboard ---
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    // Displays the main dashboard (differentiates between admin and regular user).
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // API endpoint to fetch sales data for charts.
+    Route::get('/dashboard/sales-data', [DashboardController::class, 'salesData'])->name('dashboard.sales-data');
+    // API endpoint to fetch top selling products data for charts.
+    Route::get('/dashboard/top-selling-products', [DashboardController::class, 'topSellingProducts'])->name('dashboard.top-selling-products');
 
     // --- Product Routes ---
     Route::prefix('products')->name('products.')->group(function () {
@@ -30,7 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/record-sales/create', [SaleController::class, 'create'])->name('record-sales.create');
     Route::post('/record-sales/store', [SaleController::class, 'store'])->name('record-sales.store');
 
-    
+
     // --- Transaction (Invoice) Routes ---
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('index');
@@ -41,7 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{transaction}/invoice', [TransactionController::class, 'invoice'])->name('invoice');
         Route::delete('/{transaction}', [TransactionController::class, 'destroy'])->name('destroy');
     });
-    
+
     // --- Reports / Sales Overview ---
     Route::get('/sales-overview', [SaleOverviewController::class, 'index'])->name('reports.sales-overview');
     Route::get('/sales-overview/data', [SaleOverviewController::class, 'getData'])->name('reports.sales-data');
