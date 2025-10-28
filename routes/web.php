@@ -2,52 +2,58 @@
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SaleOverviewController; // <--- ADD THIS LINE
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SaleOverviewController;
 
-
+// --- Public route (redirect guests to login) ---
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// --- Routes that require authentication ---
+Route::middleware(['auth', 'verified'])->group(function () {
 
- // --- Record-Sales Routes ---
-    // Displays the form to create a new sale record.
-    Route::get('/record-sales/create', [SaleController::class, 'create'])->name('record-sales.create');
-    // Handles the submission of the new sale form.
-    Route::post('/record-sales/store', [SaleController::class, 'store'])->name('record-sales.store');
+    // --- Dashboard ---
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-
-    // --- Transaction (Invoice) Routes ---
-    // Grouping transaction-related routes under the 'transactions' prefix and name.
-    Route::prefix('transactions')->name('transactions.')->group(function () {
-        // Displays a list of transactions.
-        Route::get('/', [TransactionController::class, 'index'])->name('index');
-        // API endpoint to fetch transaction data (likely for tables or lists).
-        Route::get('/data', [TransactionController::class, 'getData'])->name('data');
-        // Displays the details of a specific transaction.
-        Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
-        // Generates/displays an invoice for a specific transaction.
-        Route::get('/{transaction}/invoice', [TransactionController::class, 'invoice'])->name('invoice');
-        // Deletes a specific transaction.
-        Route::delete('/{transaction}', [TransactionController::class, 'destroy'])->name('destroy');
+    // --- Product Routes ---
+    Route::prefix('products')->name('products.')->group(function () {
+        Route::get('data', [ProductController::class, 'getData'])->name('data');
+        Route::get('search', [ProductController::class, 'search'])->name('search');
     });
 
+    // --- Record-Sales Routes ---
+    Route::get('/record-sales/create', [SaleController::class, 'create'])->name('record-sales.create');
+    Route::post('/record-sales/store', [SaleController::class, 'store'])->name('record-sales.store');
 
-    // --- Reports / Sales Overview --- // <--- PLACE YOUR NEW ROUTES HERE
+    
+    // --- Transaction (Invoice) Routes ---
+    Route::prefix('transactions')->name('transactions.')->group(function () {
+        Route::get('/', [TransactionController::class, 'index'])->name('index');
+        Route::get('/data', [TransactionController::class, 'getData'])->name('data');
+
+        Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
+
+        Route::get('/{transaction}/invoice', [TransactionController::class, 'invoice'])->name('invoice');
+        Route::delete('/{transaction}', [TransactionController::class, 'destroy'])->name('destroy');
+    });
+    
+    // --- Reports / Sales Overview ---
     Route::get('/sales-overview', [SaleOverviewController::class, 'index'])->name('reports.sales-overview');
     Route::get('/sales-overview/data', [SaleOverviewController::class, 'getData'])->name('reports.sales-data');
 
-Route::middleware('auth')->group(function () {
-    // --- User Profile Routes ---
+    // --- Profile ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-
+    // --- Resource Route (keep this last) ---
+    Route::resource('products', ProductController::class);
 });
 
 require __DIR__.'/auth.php';

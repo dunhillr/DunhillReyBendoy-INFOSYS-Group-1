@@ -2,32 +2,27 @@
 
 namespace App\Models;
 
-//to allow inserting values
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Product extends Model
+class TransactionDetail extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'name',
-        'net_weight',
-        'net_weight_unit_id',
-        'price',
-        'category_id',
+        'transaction_id',
+        'product_id',
+        'product_name',
+        'price_at_sale',
         'quantity',
+        'subtotal',
     ];
 
-    public function category()
+    public function transaction(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Transaction::class);
     }
 
-    // Add this method to define the unit relationship
-    public function unit()
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(Unit::class, 'net_weight_unit_id');
+        return $this->belongsTo(Product::class);
     }
 }
-
