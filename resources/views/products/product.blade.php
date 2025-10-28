@@ -16,9 +16,14 @@
                             @endif
                         </h1>
                     </div>
-                    <a href="{{ route('products.create') }}" class="btn btn-success">
-                        + Add Product
-                    </a>
+                    <div>
+                        <a href="{{ route('products.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Product
+                        </a>
+                        <a href="{{ route('products.archived') }}" class="btn btn-secondary">
+                            <i class="fas fa-archive"></i> Archived Products
+                        </a>
+                    </div>
                 </div>
 
                 <div class="card shadow-sm">
