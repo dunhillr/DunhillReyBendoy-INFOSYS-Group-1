@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import inject from '@rollup/plugin-inject';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
@@ -21,16 +20,4 @@ export default defineConfig({
             'bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
         }
     },
-=======
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-
-export default defineConfig({
-    plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
-            refresh: true,
-        }),
-    ],
->>>>>>> local-fix
 });
