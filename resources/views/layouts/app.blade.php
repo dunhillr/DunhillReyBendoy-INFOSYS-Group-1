@@ -51,6 +51,17 @@
                 color: white;
             }
 
+            .nav-link:not(.active):hover {
+                background-color: rgba(13, 110, 253, 0.1);
+                color: #0d6efd;
+                transition: 0.2s;
+            }
+
+            .nav-link:active {
+                transform: scale(0.97);
+                transition: transform 0.1s;
+            }
+
         </style>
     </head>
     <body class="font-sans antialiased">

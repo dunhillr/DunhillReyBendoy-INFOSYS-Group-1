@@ -59,7 +59,6 @@ class SaleOverviewController extends Controller
                 $query->whereYear('transactions.created_at', $year);
             })
             ->groupBy('products.id', 'products.name')
-            ->orderByDesc('total_revenue')
             ->get();
 
         return DataTables::of($salesData)
