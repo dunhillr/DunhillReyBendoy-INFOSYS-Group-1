@@ -153,7 +153,8 @@ class ProductController extends Controller
 
     public function getData(Request $request)
     {
-        $products = Product::with(['category', 'unit'])->select('products.*');
+        $products = Product::with(['category', 'unit'])
+                ->select('products.*');
     
         // Check if a category_id filter is present and not empty
         if ($request->has('category_id') && !empty($request->category_id)) {
@@ -206,6 +207,7 @@ class ProductController extends Controller
         $products = Product::withoutGlobalScopes() // 👈 disables the default "active only" filter
         ->with(['category', 'unit'])
         ->where('is_active', 0)
+        ->orderByDesc('updated_at')
         ->select('products.*');
 
     return DataTables::of($products)

@@ -88,18 +88,21 @@
                         { data: 'product_name', name: 'product_name' },
                         {
                             data: 'total_quantity',
+                            name: 'total_quantity',
                             render: function(data) {
                                 return parseInt(data).toLocaleString();
                             }
                         },
                         {
                             data: 'total_revenue',
+                            name: 'total_revenue',
                             render: function(data) {
                                 return '₱' + parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2 });
                             }
                         }
                     ],
-                    order: [[1, 'asc']],
+                    order: [[3, 'desc']],
+                    
                     language: {
                         emptyTable: "No sales found for this month and year."
                     },
