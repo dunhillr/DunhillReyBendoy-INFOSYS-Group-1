@@ -31,7 +31,7 @@
                         <table id="products-table" class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <!--<th>ID</th>-->
                                     <th>Product ID</th>
                                     <th>Name</th>
                                     <th>Net Weight</th>
@@ -68,6 +68,7 @@
             productsTable = $('#products-table').DataTable({
                 processing: true,
                 serverSide: true,
+                
                 ajax: {
                     url: '{!! route('products.data') !!}',
                     cache: false,
@@ -80,15 +81,22 @@
                         }
                     }
                 },
+                order: [[7, 'desc']],
                 columns: [
-                    { data: 'id', name: 'id' },
+                    //{ data: 'id', name: 'id' },
                     { data: 'id', name: 'id' },
                     { data: 'name', name: 'name' },
                     { data: 'net_weight', name: 'net_weight' },
                     { data: 'net_weight_unit', name: 'net_weight_unit' },
                     { data: 'price', name: 'price' },
                     { data: 'category_name', name: 'category_name' },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false }
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false },
+                    {
+                        data: 'created_at',
+                        name: 'products.created_at',
+                        visible: false,
+                        searchable: false
+                    }
                 ]
             });
 
@@ -114,7 +122,7 @@ $(document).on('click', '.delete-product', function () {
                 },
                 success: function (response) {
                     Swal.fire('Deleted!', response.message, 'success');
-                    $('#products-table').DataTable().ajax.reload(null, false); // Reload without page refresh
+                    productsTable.ajax.reload(null, false);
                 },
                 error: function (xhr) {
                     const errorMsg = xhr.responseJSON?.message || 'An error occurred.';

@@ -103,7 +103,7 @@
             let table = $('#transactions-table').DataTable({
                 processing: true,
                 serverSide: true,
-                order: [[1, 'desc']],
+                order: [[2, 'desc']],
                 ajax: {
                     url: '{!! route('transactions.data') !!}',
                     data: function (d) {
@@ -112,20 +112,48 @@
                     }
                 },
                 columns: [
-                    { data: 'id', name: 'id' },
                     {
-                            data: 'total_amount',
-                            render: function(data) {
-                                return '₱' + parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2 });
-                            }
-                        },
+                        data: 'id',
+                        name: 'transactions.id'
+                    },
+                    {
+                        data: 'total_amount',
+                        name: 'transactions.total_amount',
+                        render: function(data) {
+                            return '₱' + parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                        }
+                    },
                     /*{
                             data: 'payment_amount',
                             render: function(data) {
                                 return '₱' + parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2 });
                             }
                         },*/
-                    { data: 'created_at_formatted', name: 'created_at_formatted' },
+                    {
+                        data: 'created_at_formatted',
+                        name: 'transactions.created_at',
+                        orderable: true,
+                        render: function(data, type) {
+                        if (!data) return '';
+                            
+                        // For sorting, return as timestamp
+                        if (type === 'sort' || type === 'type') {
+                            return new Date(data).getTime();
+                        }
+
+                        // For display, format it nicely
+                        const date = new Date(data);
+                        return date.toLocaleString('en-PH', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        }
+                        
+                    },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false }
                 ]
             });

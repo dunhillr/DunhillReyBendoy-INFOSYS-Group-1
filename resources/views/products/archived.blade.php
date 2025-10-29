@@ -86,6 +86,7 @@
                             success: function (response) {
                                 Swal.fire('Restored!', response.message, 'success');
                                 archivedTable.ajax.reload(null, false);
+                                productsTable.ajax.reload(null, false);
                             },
                             error: function (xhr) {
                                 console.error(xhr.responseText);

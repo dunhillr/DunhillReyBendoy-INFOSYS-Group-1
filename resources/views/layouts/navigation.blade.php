@@ -16,37 +16,43 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <!-- Navigation Links -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                
-                <li class="nav-item">
-                    <a class="nav-link @if(request()->routeIs('dashboard')) active @endif" href="{{ route('dashboard') }}" @if(request()->routeIs('dashboard')) aria-current="page" @endif>
-                        Dashboard
-                    </a>
-                </li>
 
-                <li class="nav-item">
-                    <a class="nav-link @if(request()->routeIs('products.*')) active @endif" href="{{ route('products.index') }}" @if(request()->routeIs('products.*')) aria-current="page" @endif>
-                        Products
-                    </a>
-                </li>
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 rounded @if(request()->routeIs('dashboard')) active fw-semibold bg-primary text-white @else text-secondary @endif"
+           href="{{ route('dashboard') }}">
+            Dashboard
+        </a>
+    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link @if(request()->routeIs('record-sales.create')) active @endif" href="{{ route('record-sales.create') }}" @if(request()->routeIs('record-sales.create')) aria-current="page" @endif>
-                        Record Sale
-                    </a>
-                </li>
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 rounded @if(request()->routeIs('products.*')) active fw-semibold bg-primary text-white @else text-secondary @endif"
+           href="{{ route('products.index') }}">
+            Products
+        </a>
+    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('transactions.index') }}">Transactions</a>
-                </li>
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 rounded @if(request()->routeIs('record-sales.create')) active fw-semibold bg-primary text-white @else text-secondary @endif"
+           href="{{ route('record-sales.create') }}">
+            Record Sale
+        </a>
+    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('reports.sales-overview') }}">
-                        Sales Overview
-                    </a>
-                </li>
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 rounded @if(request()->routeIs('transactions.index')) active fw-semibold bg-primary text-white @else text-secondary @endif"
+           href="{{ route('transactions.index') }}">
+            Transactions
+        </a>
+    </li>
 
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 rounded @if(request()->routeIs('reports.sales-overview')) active fw-semibold bg-primary text-white @else text-secondary @endif"
+           href="{{ route('reports.sales-overview') }}">
+            Sales Overview
+        </a>
+    </li>
 
-            </ul>
+</ul>
 
             <!-- Settings Dropdown -->
             <ul class="navbar-nav">

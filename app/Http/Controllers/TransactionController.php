@@ -33,10 +33,14 @@ class TransactionController extends Controller
 
 
     public function getData(Request $request)
-    {
-    $transactions = Transaction::with('details.product')->select('transactions.*');
+{
+    $transactions = Transaction::with(['details.product' => function ($query) {
+        // Include inactive products as well
+        $query->withoutGlobalScope('active');
+    }])
+    ->select('transactions.*');
 
-    // Filter by date
+    // Optional date filtering
     if ($request->from_date) {
         $transactions->whereDate('created_at', '>=', $request->from_date);
     }
@@ -46,8 +50,11 @@ class TransactionController extends Controller
 
     return DataTables::of($transactions)
         ->addColumn('items', function ($t) {
+            // Safely map product details
             return $t->details->map(function ($d) {
-                return $d->product->name . ' x ' . $d->quantity;
+                // If the product model no longer exists, use stored name or placeholder
+                $productName = $d->product->name ?? $d->product_name ?? '[Deleted Product]';
+                return $productName . ' x ' . $d->quantity;
             })->implode(', ');
         })
         ->addColumn('total_amount', fn($t) => $t->total_amount)
@@ -56,9 +63,10 @@ class TransactionController extends Controller
         ->addColumn('actions', function ($t) {
             return '<button class="btn btn-info btn-sm view-transaction" data-id="' . $t->id . '">View</button>';
         })
-        ->rawColumns(['actions']) // allow HTML in actions
+        ->rawColumns(['actions'])
         ->make(true);
-    }
+}
+
 
 
     /**
