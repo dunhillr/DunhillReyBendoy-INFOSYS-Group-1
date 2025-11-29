@@ -83,6 +83,7 @@
                             d.year = $('#year').val();
                         }
                     },
+                    order: [[3, 'desc']],
                     columns: [
                         { data: 'product_id', name: 'product_id'},
                         { data: 'product_name', name: 'product_name' },
@@ -101,7 +102,7 @@
                             }
                         }
                     ],
-                    order: [[3, 'desc']],
+                    
                     
                     language: {
                         emptyTable: "No sales found for this month and year."

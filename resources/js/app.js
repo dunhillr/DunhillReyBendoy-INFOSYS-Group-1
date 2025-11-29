@@ -3,9 +3,13 @@
 import Alpine from 'alpinejs';
 import './bootstrap';
 
+
 // Use this to expose jQuery globally for older libraries that need it
 import jQuery from 'jquery';
 window.$ = window.jQuery = jQuery;
+
+import './dashboard.js';
+import './products.js';
 
 // Import Bootstrap's full JS bundle
 import 'bootstrap';

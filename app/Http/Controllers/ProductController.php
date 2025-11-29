@@ -31,6 +31,12 @@ class ProductController extends Controller
         return view('products.product', compact('categories', 'showCategories', 'category'));
 
     }
+
+    public function category(Request $request)
+    {
+        // Logic to show categories or filter products by category
+        return view('products.category'); // Or reuse your main product view
+    }
     
     public function create()
     {
@@ -85,8 +91,15 @@ class ProductController extends Controller
                 'price' => $request->validated('price'),
             ]);
 
+            // Check for the 'stay' parameter in the request
+            if ($request->has('stay')) {
+                return redirect()->back()->with('success', 'Product updated successfully!');
+            }
+
             return redirect()->route('products.index')->with('success', 'Product added successfully!');
+
         } catch (\Illuminate\Database\QueryException $e) {
+            
             return redirect()->back()->with('error', 'A product with this combination of attributes already exists.')->withInput();
         }
     }
@@ -152,32 +165,58 @@ class ProductController extends Controller
     }
 
     public function getData(Request $request)
-    {
-        $products = Product::with(['category', 'unit'])
-                ->select('products.*');
-    
-        // Check if a category_id filter is present and not empty
-        if ($request->has('category_id') && !empty($request->category_id)) {
-            $products->where('category_id', $request->category_id);
-        }
-    
-        return DataTables::of($products)
-            ->addColumn('category_name', function (Product $product) {
-                return $product->category ? $product->category->name : 'N/A';
-            })
-            ->addColumn('net_weight_unit', function (Product $product) {
-                return $product->unit ? $product->unit->name : '';
-            })
-            ->addColumn('actions', function (Product $product) {
-                return '
-                    <a href="' . route('products.edit', $product->id) . '" class="btn btn-warning btn-sm">Edit</a>
-                    <button class="btn btn-danger btn-sm delete-product" data-id="'.$product->id.'">Delete</button>
-                ';
-            })
+{
+    // Eager load category and unit relationships
+    $products = Product::with(['category', 'unit'])->select('products.*');
 
-            ->rawColumns(['actions'])
-            ->make(true);
+    // 1. NEW LOGIC: Check for array of category IDs (Correct!)
+    if ($request->has('category_ids') && is_array($request->category_ids) && count($request->category_ids) > 0) {
+        $products->whereIn('category_id', $request->category_ids);
     }
+    // Fallback for single ID (good to keep)
+    elseif ($request->has('category_id') && !empty($request->category_id)) {
+        $products->where('category_id', $request->category_id);
+    }
+
+    return DataTables::of($products)
+        ->addColumn('category_name', function (Product $product) {
+            return $product->category ? $product->category->name : 'N/A';
+        })
+        // 2. FIX: Ensure this matches the JavaScript expectation
+        // The JS expects "net_weight_unit" to be available. 
+        // Since we are using "with('unit')", the relationship "unit" is already in the JSON.
+        // But adding this explicitly helps searching/sorting if needed.
+        ->addColumn('net_weight_unit', function (Product $product) {
+        // 🛠️ FIX: Return ONLY the name string, not the whole object
+            return $product->unit ? $product->unit->name : ''; 
+        })
+        // 3. MODERNIZATION: Use the Dropdown Action Menu
+        ->addColumn('actions', function (Product $product) {
+            return '
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Actions
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="' . route('products.edit', $product->id) . '">
+                                <i class="fas fa-edit me-2 text-warning"></i>Edit
+                            </a>
+                        </li>
+                        <li>
+                            <button class="dropdown-item delete-product" 
+                                    data-id="'.$product->id.'" 
+                                    data-route="'.route('products.destroy', $product->id).'">
+                                <i class="fas fa-trash-alt me-2 text-danger"></i>Archive
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            ';
+        })
+        ->rawColumns(['actions'])
+        ->make(true);
+}
     
     // Show archived products (is_active = 0)
     public function archived()
@@ -204,24 +243,30 @@ class ProductController extends Controller
     
     public function getArchivedData(Request $request)
     {
-        $products = Product::withoutGlobalScopes() // 👈 disables the default "active only" filter
-        ->with(['category', 'unit'])
-        ->where('is_active', 0)
-        ->orderByDesc('updated_at')
-        ->select('products.*');
+        // Use 'withInactive' or 'withoutGlobalScopes' depending on your model setup
+        $products = Product::withoutGlobalScopes() 
+            ->with(['category', 'unit'])
+            ->where('is_active', 0)
+            ->orderByDesc('updated_at')
+            ->select('products.*');
 
-    return DataTables::of($products)
-        ->addColumn('category_name', fn($p) => $p->category->name ?? 'N/A')
-        ->addColumn('unit_name', fn($p) => $p->unit->name ?? '')
-        ->addColumn('net_weight_unit', fn($p) => $p->unit->name ?? '')
-        ->addColumn('actions', fn($p) => '
-            <button class="btn btn-success btn-sm restore-product" data-id="' . $p->id . '">
-                Restore
-            </button>
-        ')
-        ->rawColumns(['actions'])
-        ->make(true);
-
-}
+        return DataTables::of($products)
+            ->addColumn('category_name', fn($p) => $p->category->name ?? 'N/A')
+            // Pass the whole unit object for JS rendering
+            ->addColumn('net_weight_unit', function (Product $product) {
+                return $product->unit ? $product->unit->name : ''; 
+            })
+            
+            ->addColumn('actions', fn($p) => '
+                <button class="btn btn-success btn-sm restore-product shadow-sm" 
+                        data-id="' . $p->id . '" 
+                        data-bs-toggle="tooltip" 
+                        title="Restore this product">
+                    <i class="fas fa-trash-restore me-1"></i> Restore
+                </button>
+            ')
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
 
 }
