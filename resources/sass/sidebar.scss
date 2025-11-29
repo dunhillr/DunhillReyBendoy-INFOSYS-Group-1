@@ -1,0 +1,90 @@
+html, body {
+    height: 100%;       // Must fill the screen
+    margin: 0;          // Remove default margin
+    overflow: hidden;   // Prevents the main browser scrollbar
+}
+
+.sidebar {
+    width: 250px;
+    height: calc(100vh - 56px);
+    position: fixed;
+    top: 57px;
+    left: 0;
+    background: #ffffff;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+}
+
+.sidebar .nav-link {
+    color: #6c757d;
+    padding: 12px 20px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 8px;
+    margin: 4px 12px;
+}
+
+.sidebar .nav-link.active {
+    background: #0d6efd;
+    color: white !important;
+    font-weight: 600;
+}
+
+.sidebar .nav-link:hover {
+    background: #e9ecef;
+    color: #000;
+}
+
+.content-wrapper {
+    margin-left: 250px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    padding-top: 56px;
+    padding: 20px;
+    padding-bottom: 100px !important;
+}
+
+.sidebar-user {
+    margin-top: auto;
+    padding: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.sidebar-user .dropdown-toggle {
+    width: 100%;
+    text-align: left;
+}
+
+/* Add these styles to your primary SCSS file (e.g., app.scss or sidebar.scss) */
+
+.apexcharts-tooltip {
+    /* 1. Increase overall box size via padding */
+    padding: 12px 18px !important; 
+    
+    /* 2. Ensure the box can expand to accommodate longer product names */
+    max-width: 300px !important; 
+    
+    /* 3. Improve general text readability */
+    line-height: 1.5; 
+    
+    /* Optional: Ensure the background/theme remains the default light setting */
+    // background: #fff !important; 
+    // border: 1px solid #ddd !important;
+}
+
+.apexcharts-tooltip-title {
+    /* 4. Increase the font size and spacing for the product name (title) */
+    font-size: 16px !important; 
+    font-weight: 700 !important;
+    padding-bottom: 6px !important; 
+    margin-bottom: 6px !important;
+}
+
+.apexcharts-tooltip-text {
+    /* 5. Increase the font size for the value (Units Sold) */
+    font-size: 14px !important;
+}

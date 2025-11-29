@@ -17,23 +17,23 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
      // --- Dashboard ---
-    // Displays the main dashboard (differentiates between admin and regular user).
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    // API endpoint to fetch sales data for charts.
-    Route::get('/dashboard/sales-data', [DashboardController::class, 'salesData'])->name('dashboard.sales-data');
-    // API endpoint to fetch top selling products data for charts.
-    Route::get('/dashboard/top-selling-products', [DashboardController::class, 'topSellingProducts'])->name('dashboard.top-selling-products');
+    Route::get('/dashboard-overview', [DashboardController::class, 'index'])->name('dashboard.overview');
+    Route::get('/dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
 
     // --- Product Routes ---
     Route::prefix('products')->name('products.')->group(function () {
         Route::get('data', [ProductController::class, 'getData'])->name('data');
         Route::get('search', [ProductController::class, 'search'])->name('search');
+        Route::get('category', [ProductController::class, 'category'])->name('products.category');
+
 
         Route::post('{id}/restore', [ProductController::class, 'restore'])->name('restore');
 
         Route::get('archived', [ProductController::class, 'archived'])->name('archived');
         Route::get('archived/data', [ProductController::class, 'getArchivedData'])->name('archived.data');
     });
+
 
     // --- Record-Sales Routes ---
     Route::get('/record-sales/create', [SaleController::class, 'create'])->name('record-sales.create');
