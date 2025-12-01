@@ -1,0 +1,12 @@
+  Dashboard-features                                [m 5c512a3 [[34morigin/Dashboard-features[m] Merge branch 'main' into Dashboard-Features
+* [32mSales-Record                                      [m 15a34da [[34morigin/Sales-Record[m] Add create sale view with product search and summary
+  backup-main                                       [m ae5cb5a Initial commit of salesmonitor Laravel project
+  development                                       [m 08c8df5 [[34morigin/development[m] template/ and some stuffs
+  feat/updated-product-list-and-new-record-sale-page[m 6e5c330 [[34morigin/feat/updated-product-list-and-new-record-sale-page[m: ahead 1, behind 7] Initial System
+  feature/newly-updated-system                      [m ae984e9 [[34morigin/feature/newly-updated-system[m] Ignore desktop.ini
+  fix-transaction-product-null-and-added-features   [m 05c33a3 [[34morigin/fix-transaction-product-null-and-added-features[m] Fix null product issue on transaction page when product is deleted, and added features
+  initial-system                                    [m d032f3f [[34morigin/initial-system[m: behind 10] Merged local-fix branch with final code
+  local-fix                                         [m 162c8c2 Merge pull request #3 from dunhillr/Origin/SalesOverview
+  main                                              [m b0095af [[34morigin/main[m: ahead 6] Merge branch 'main' of https://github.com/dunhillr/DunhillReyBendoy-INFOSYS-Group-1
+  merged-version                                    [m d032f3f Merged local-fix branch with final code
+  restore-archive-feature                           [m 4f23a53 [[34morigin/restore-archive-feature[m] Fix restore route and add archived product routes
