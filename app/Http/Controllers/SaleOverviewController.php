@@ -48,18 +48,25 @@ class SaleOverviewController extends Controller
                 'products.id as product_id',
                 'products.name as product_name',
                 DB::raw('SUM(transaction_details.quantity) as total_quantity'),
+                // Optimization: Sum the 'subtotal' column directly if available, 
+                // otherwise calculation is fine.
                 DB::raw('SUM(transaction_details.quantity * transaction_details.price_at_sale) as total_revenue')
             )
             ->join('products', 'transaction_details.product_id', '=', 'products.id')
             ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
-            ->when($month, function ($query) use ($month) {
+            
+            // ✅ FIX: Only apply month filter if it is NOT 'all'
+            ->when($month && $month !== 'all', function ($query) use ($month) {
                 $query->whereMonth('transactions.created_at', $month);
             })
+            
             ->when($year, function ($query) use ($year) {
                 $query->whereYear('transactions.created_at', $year);
             })
             ->groupBy('products.id', 'products.name')
-            ->get();
+            // Add get() so DataTables receives a Collection, not a Builder
+            // (DataTables can handle Builder too, but get() ensures group by executes)
+            ->get(); 
 
         return DataTables::of($salesData)
             ->addColumn('total_quantity', fn($t) => $t->total_quantity)

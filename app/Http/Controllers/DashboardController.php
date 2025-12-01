@@ -49,14 +49,12 @@ class DashboardController extends Controller
         $dayOfMonth = $now->day;
         $isSecondHalf = $dayOfMonth > 15;
 
-        // Dates for querying LAST YEAR
-        $lastYear = $now->copy()->subYear()->year;
         $monthA_Index = $now->month; // Current Month
         $monthB_Index = $now->copy()->addMonth()->month; // Next Month
 
-        // Fetch recommendations
-        $currentMonthRecs = $this->getTopProductsByMonth($monthA_Index, $lastYear);
-        $nextMonthRecs = $this->getTopProductsByMonth($monthB_Index, $lastYear);
+        // Fetch recommendations (Removed $lastYear argument)
+        $currentMonthRecs = $this->getTopProductsByMonth($monthA_Index);
+        $nextMonthRecs = $this->getTopProductsByMonth($monthB_Index);
 
         return view('dashboard', [
             // Summary Card Data
@@ -146,7 +144,7 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        // 5. 🆕 Sales by Category (Moved UP before return)
+        // 5. Sales by Category (With "Others" Logic)
         $rawCategorySales = TransactionDetail::join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->join('products', 'transaction_details.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')
@@ -159,17 +157,12 @@ class DashboardController extends Controller
             ->orderByDesc('total_revenue')
             ->get();
         
-        // --- LOGIC: Group small categories into "Others" ---
-        $topLimit = 5; // How many specific categories to show
+        $topLimit = 5; 
         
         if ($rawCategorySales->count() > $topLimit) {
-            // Take the top 5
             $salesByCategory = $rawCategorySales->take($topLimit);
-        
-            // Sum the remaining
             $othersRevenue = $rawCategorySales->slice($topLimit)->sum('total_revenue');
         
-            // Append "Others" if there is remaining revenue
             if ($othersRevenue > 0) {
                 $salesByCategory->push((object)[
                     'category_name' => 'Others',
@@ -177,11 +170,39 @@ class DashboardController extends Controller
                 ]);
             }
         } else {
-            // If we have 5 or fewer categories, just show them all
             $salesByCategory = $rawCategorySales;
         }
 
-        // ✅ Single Return Statement at the end
+        // --- 🆕 Seasonal Recommendations Data ---
+        $dayOfMonth = $now->day;
+        $isSecondHalf = $dayOfMonth > 15;
+        
+        // Use the helper to get data from ALL past years
+        $currentMonthRecs = $this->getTopProductsByMonth($now->month);
+        $nextMonthRecs = $this->getTopProductsByMonth($now->copy()->addMonth()->month);
+
+        if ($currentMonthRecs->isEmpty()) {
+            $currentMonthRecs = collect([
+                (object)['product_name' => 'Kopiko Brown (Demo)', 'total_sold_last_year' => 150],
+                (object)['product_name' => 'Silver Swan Soy Sauce', 'total_sold_last_year' => 120],
+                (object)['product_name' => 'Magic Flakes', 'total_sold_last_year' => 95],
+                (object)['product_name' => 'Bear Brand Swak', 'total_sold_last_year' => 80],
+                (object)['product_name' => 'Lucky Me! Beef', 'total_sold_last_year' => 65],
+            ]);
+        }
+
+        if ($nextMonthRecs->isEmpty()) {
+            $nextMonthRecs = collect([
+                (object)['product_name' => 'Coca Cola 1.5L (Demo)', 'total_sold_last_year' => 210],
+                (object)['product_name' => 'Nature Spring Water', 'total_sold_last_year' => 180],
+                (object)['product_name' => 'San Mig Light', 'total_sold_last_year' => 145],
+                (object)['product_name' => 'Red Horse Stallion', 'total_sold_last_year' => 130],
+                (object)['product_name' => 'Ding Dong Mixed Nuts', 'total_sold_last_year' => 110],
+            ]);
+        }
+        // 🚨 END DEMO MODE 🚨
+
+        // ✅ Final Return
         return response()->json([
             'currentMonthRevenue' => $currentDays,
             'prevMonthRevenue'    => $prevDays,
@@ -189,7 +210,15 @@ class DashboardController extends Controller
             'totalSales'          => (int) $currentSummary->total_sales,
             'totalQuantity'       => (int) $totalQuantity,
             'top_products'        => $topProducts,
-            'sales_by_category'   => $salesByCategory, // Included here
+            'sales_by_category'   => $salesByCategory,
+            // 🆕 New Data Key
+            'recs' => [
+                'isSecondHalf'     => $isSecondHalf,
+                'currentMonthName' => $now->format('F'),
+                'nextMonthName'    => $now->copy()->addMonth()->format('F'),
+                'current'          => $currentMonthRecs,
+                'next'             => $nextMonthRecs,
+            ]
         ]);
     }
 
@@ -214,12 +243,16 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getTopProductsByMonth($month, $year)
+    // ✅ UPDATED: Removed $year parameter
+    private function getTopProductsByMonth($month)
     {
+        $currentYear = Carbon::now()->year;
+
         return TransactionDetail::join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->join('products', 'transaction_details.product_id', '=', 'products.id')
             ->whereMonth('transactions.created_at', $month)
-            ->whereYear('transactions.created_at', $year)
+            // Look for records in any year BEFORE the current year
+            ->whereYear('transactions.created_at', '<', $currentYear)
             ->selectRaw('
                 products.name as product_name,
                 products.category_id, 

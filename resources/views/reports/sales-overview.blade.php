@@ -1,138 +1,111 @@
 <x-app-layout>
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-12">
-                <div class="card shadow-sm border-0 rounded-4">
-                    <div class="card-body">
-                        <h1 class="fw-bold text-primary mb-4">
-                            <i class="bi bi-bar-chart-fill me-2"></i>Sales Overview
-                        </h1>
+    <x-slot name="header">
+        <h2 class="h4 font-weight-bold text-gray-800 mb-0">
+            {{ __('Sales Overview') }}
+        </h2>
+    </x-slot>
 
-                        <!-- Filter Controls -->
-                        <form id="filter-form" class="row g-3 align-items-end mb-4">
-                            <div class="col-md-3">
-                                <label for="month" class="form-label fw-semibold">Month</label>
-                                <select id="month" name="month" class="form-select shadow-sm">
-                                    @foreach ($availableMonths as $monthNum => $monthName)
-                                        <option value="{{ $monthNum }}" {{ $monthNum == $selectedMonth ? 'selected' : '' }}>
-                                            {{ $monthName }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="col-md-2">
-                                <label for="year" class="form-label fw-semibold">Year</label>
-                                <select id="year" name="year" class="form-select shadow-sm">
-                                    @foreach ($availableYears as $year)
-                                        <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
-                                            {{ $year }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="col-md-2 pt-md-4">
-                                <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                                    <i class="bi bi-funnel-fill me-1"></i> Filter
-                                </button>
-                            </div>
-                        </form>
-
-                        <!-- DataTable -->
-                        <div class="table-responsive">
-                            <table id="sales-table" class="table table-striped table-hover align-middle border rounded-3">
-                                <thead class="table-primary text-start">
-                                    <tr>
-                                        <th>Product ID</th>
-                                        <th>Product Name</th>
-                                        <th>Total Quantity</th>
-                                        <th>Total Revenue (₱)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- DataTables fills this -->
-                                </tbody>
-                                <tfoot class="table-light fw-bold">
-                                    <tr>
-                                        <td colspan="2" class="text-end">Total:</td>
-                                        <td id="total-quantity" class="text-center">0</td>
-                                        <td id="total-revenue" class="text-end text-success">₱0.00</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+    <div class="container-fluid py-4 px-4">
+        
+        {{-- 1. Filter Section --}}
+        <div class="card shadow-sm border-0 mb-4 rounded-3">
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    {{-- Year Selection --}}
+                    <div class="col-md-3">
+                        <label for="year" class="form-label fw-bold text-secondary small text-uppercase">Year</label>
+                        <select id="year" name="year" class="form-select bg-light border-0">
+                            @foreach ($availableYears as $year)
+                                <option value="{{ $year }}" {{ $year == $selectedYear ? 'selected' : '' }}>
+                                    {{ $year }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
+
+                    {{-- Month Selection (With 'Whole Year' Option) --}}
+                    <div class="col-md-3">
+                        <label for="month" class="form-label fw-bold text-secondary small text-uppercase">Month</label>
+                        <select id="month" name="month" class="form-select bg-light border-0">
+                            {{-- ✅ NEW: Option to view entire year --}}
+                            <option value="all" {{ $selectedMonth == 'all' ? 'selected' : '' }}>Whole Year</option>
+                            
+                            @foreach ($availableMonths as $monthNum => $monthName)
+                                <option value="{{ $monthNum }}" {{ $monthNum == $selectedMonth ? 'selected' : '' }}>
+                                    {{ $monthName }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Filter Button --}}
+                    <div class="col-md-3">
+                        <button id="filter-btn" class="btn btn-primary w-100 shadow-sm">
+                            <i class="fas fa-filter me-2"></i>Apply Filters
+                        </button>
+                    </div>
+                    
+                    {{-- Export / Print (Optional future-proofing) --}}
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-secondary w-100" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 2. Sales Data Table --}}
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-primary">
+                    <i class="fas fa-table me-2"></i>Sales Breakdown
+                </h6>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill">
+                    <i class="fas fa-calendar-alt me-1"></i> <span id="current-period-label">Current View</span>
+                </span>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="sales-table" class="table table-hover align-middle mb-0 w-100" data-url="{{ route('reports.sales-data') }}">
+                        <thead class="bg-light text-secondary">
+                            <tr>
+                                <th class="py-3 ps-4" style="width: 15%">Product ID</th>
+                                <th class="py-3" style="width: 35%">Product Name</th>
+                                <th class="py-3 text-center" style="width: 25%">Total Quantity Sold</th>
+                                <th class="py-3 text-end pe-4" style="width: 25%">Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{-- DataTables populates this --}}
+                        </tbody>
+                        <tfoot class="bg-light fw-bold text-dark border-top">
+                            <tr>
+                                <td colspan="2" class="text-end py-3 text-uppercase small text-muted">Grand Total:</td>
+                                <td id="total-quantity" class="text-center py-3 fs-5">0</td>
+                                <td id="total-revenue" class="text-end pe-4 py-3 fs-5 text-success">₱0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
     @push('scripts')
-        <script>
-            $(function() {
-                let salesTable;
-
-                salesTable = $('#sales-table').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: '{!! route('reports.sales-data') !!}',
-                        data: function (d) {
-                            d.month = $('#month').val();
-                            d.year = $('#year').val();
-                        }
-                    },
-                    order: [[3, 'desc']],
-                    columns: [
-                        { data: 'product_id', name: 'product_id'},
-                        { data: 'product_name', name: 'product_name' },
-                        {
-                            data: 'total_quantity',
-                            name: 'total_quantity',
-                            render: function(data) {
-                                return parseInt(data).toLocaleString();
-                            }
-                        },
-                        {
-                            data: 'total_revenue',
-                            name: 'total_revenue',
-                            render: function(data) {
-                                return '₱' + parseFloat(data).toLocaleString(undefined, { minimumFractionDigits: 2 });
-                            }
-                        }
-                    ],
-                    
-                    
-                    language: {
-                        emptyTable: "No sales found for this month and year."
-                    },
-                    drawCallback: function(settings) {
-                        const api = this.api();
-                        let totalQty = 0;
-                        let totalRevenue = 0;
-
-                        // Loop through data and sum values
-                        api.rows({ page: 'current' }).data().each(function(row) {
-                            totalQty += parseFloat(row.total_quantity);
-                            // Remove ₱ and commas before parsing
-                            totalRevenue += parseFloat(
-                                String(row.total_revenue).replace(/[₱,]/g, '')
-                            );
-                        });
-
-                        // Update footer
-                        $('#total-quantity').text(totalQty.toLocaleString());
-                        $('#total-revenue').text('₱' + totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 }));
-                    }
-                });
-
-                // Filter form submit
-                $('#filter-form').on('submit', function(e) {
-                    e.preventDefault();
-                    salesTable.ajax.reload();
-                });
-            }); console.log("✅ Autocomplete script loaded");
-        </script>
+        @vite('resources/js/sales-overview.js')
+        
+        <style>
+            /* Custom print styles to ensure table looks good on paper */
+            @media print {
+                body * { visibility: hidden; }
+                .card, .card * { visibility: visible; }
+                .card { position: absolute; left: 0; top: 0; width: 100%; border: none !important; shadow: none !important; }
+                #filter-btn, button { display: none !important; }
+            }
+            .dataTables_wrapper .dataTables_paginate .paginate_button { padding: 0; margin: 0; }
+            table.dataTable.no-footer { border-bottom: none; }
+        </style>
     @endpush
 </x-app-layout>

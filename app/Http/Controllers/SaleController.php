@@ -73,7 +73,4 @@ class SaleController extends Controller
 }
 
 
-
-
-
 }

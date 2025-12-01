@@ -1,279 +1,154 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Record Sale
-        </h2>
-    </x-slot>
-
-    <div class="container py-4">
-        <div class="row">
+    <div class="container-fluid py-4 px-4">
+        
+        <div class="row g-4">
+            
+            {{-- LEFT COLUMN: Product Search & Cart --}}
             <div class="col-lg-8">
-                <div class="card shadow-sm p-4">
-                    <h5 class="mb-4">Add Products to Sale</h5>
-                    <div class="mb-3">
-                        <label for="product_search" class="form-label">Search Product</label>
-                        <input type="text" id="product_search" class="form-control" placeholder="Type product name or ID" autocomplete="off">
+                <div class="card shadow-lg border-0 h-100 rounded-3">
+                    <div class="card-header bg-white py-3 border-bottom-0">
+                        <h5 class="fw-bold text-primary mb-0"><i class="fas fa-shopping-cart me-2"></i>Current Sale</h5>
                     </div>
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Product Name</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Subtotal</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sale-items-table">
-                            <!-- Products will be added here via JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card shadow-sm p-4">
-                    <form action="{{ route('record-sales.store') }}" method="POST" id="sale-form">
-                        @csrf
-                        <h5 class="mb-4">Summary</h5>
-                        <div class="d-flex justify-content-between">
-                            <strong>Total:</strong>
-                            <span id="total-amount">0.00</span>
+                    
+                    <div class="card-body p-4">
+                        {{-- 1. Large Search Bar (Standard Search) --}}
+                        <div class="mb-4">
+                            <label for="product_search" class="form-label fw-bold text-secondary small text-uppercase">Find Product</label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text bg-light border-0 ps-3"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" 
+                                    id="product_search" 
+                                    class="form-control bg-light border-0" 
+                                    placeholder="Type product name to search..." 
+                                    autocomplete="off"
+                                    data-route="{{ route('products.search') }}"
+                                    autofocus>
+                            </div>
                         </div>
-                        <hr class="my-3">
-                        <div class="mb-3">
-                            <label for="payment_amount" class="form-label">Payment</label>
-                            <input type="number" step="0.01" id="payment_amount" name="payment_amount" class="form-control">
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <strong>Change:</strong>
-                            <span id="change-amount">0.00</span>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 mt-4">Record Sale</button>
-                        
-                    </form>
 
+                        {{-- 2. Cart Table --}}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-secondary">
+                                    <tr>
+                                        <th class="py-3 ps-3" style="width: 35%">Product</th>
+                                        <th class="py-3 text-center" style="width: 15%">Price</th>
+                                        {{-- ✅ UI FIX: Increased width from 20% to 25% --}}
+                                        <th class="py-3 text-center" style="width: 25%">Qty</th>
+                                        <th class="py-3 text-end" style="width: 15%">Subtotal</th>
+                                        <th class="py-3 text-center" style="width: 10%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sale-items-table">
+                                    {{-- JS will populate this --}}
+                                </tbody>
+                            </table>
+                            
+                            {{-- Empty State --}}
+                            <div id="empty-cart-message" class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fas fa-basket-shopping text-muted opacity-25" style="font-size: 4rem;"></i>
+                                </div>
+                                <h6 class="text-muted fw-bold">Cart is empty</h6>
+                                <p class="text-muted small mb-0">Scan items or search to start a sale.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            {{-- RIGHT COLUMN: Payment & Summary --}}
+            <div class="col-lg-4">
+                <div class="card shadow-lg border-0 rounded-3 sticky-top" style="top: 20px;">
+                    <div class="card-body p-4">
+                        <form action="{{ route('record-sales.store') }}" method="POST" id="sale-form">
+                            @csrf
+                            
+                            <h6 class="text-uppercase fw-bold text-muted mb-4 small">Payment Summary</h6>
+
+                            {{-- 1. Total Display --}}
+                            <div class="text-center mb-4 p-4 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25">
+                                <span class="d-block text-primary fw-bold text-uppercase small mb-1">Total Due</span>
+                                <h1 class="display-4 fw-bolder text-primary mb-0" id="total-display">
+                                    <span class="fs-4 align-top">₱</span><span id="total-amount">0.00</span>
+                                </h1>
+                            </div>
+
+                            {{-- 2. Payment Input --}}
+                            <div class="mb-4">
+                                <label for="payment_amount" class="form-label fw-bold text-dark">Amount Received</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white border-end-0 text-muted">₱</span>
+                                    <input type="number" 
+                                        step="0.01" 
+                                        id="payment_amount" 
+                                        name="payment_amount" 
+                                        class="form-control border-start-0 ps-0 fw-bold text-dark" 
+                                        placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <hr class="border-secondary border-opacity-10 my-4">
+
+                            {{-- 3. Change Display --}}
+                            <div class="d-flex justify-content-between align-items-end mb-4">
+                                <span class="text-muted fw-medium">Change</span>
+                                <h3 class="fw-bold text-secondary mb-0" id="change-display">
+                                    ₱<span id="change-amount">0.00</span>
+                                </h3>
+                            </div>
+
+                            {{-- 4. Submit Button --}}
+                            <button type="submit" class="btn btn-primary btn-lg w-100 py-3 shadow-sm fw-bold text-uppercase letter-spacing-1">
+                                <i class="fas fa-check-circle me-2"></i> Complete Sale
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-
-@push('scripts')
-<script>
-    console.log("✅ Autocomplete script loaded");
-    $(function() {
-        let saleItems = [];
-        const productSearch = $('#product_search');
-        const saleItemsTable = $('#sale-items-table');
-        const totalAmountSpan = $('#total-amount');
-        const changeAmountSpan = $('#change-amount');
-        const paymentAmountInput = $('#payment_amount');
-        const saleForm = $('#sale-form');
-        const recordBtn = saleForm.find('button[type="submit"]');
-
-        // --- Autocomplete setup ---
-        productSearch.autocomplete({
-            source: function(request, response) {
-                $.get("{{ route('products.search') }}", { query: request.term }, function(data) {
-                    const formattedData = data.map(item => ({
-                        label: item.label,
-                        value: item.value,
-                        id: item.id,
-                        price: parseFloat(item.price),
-                        net_weight: item.net_weight,
-                        net_weight_unit_name: item.net_weight_unit_name
-                    }));
-                    response(formattedData);
-                });
-            },
-            select: function(event, ui) {
-                const product = ui.item;
-                addProductToSale(product);
-                productSearch.val('');
-                productSearch.focus();
-                return false;
-            }
-        });
-
-        // --- addProductToSale function ---
-        function addProductToSale(product) {
-            let existingItem = saleItems.find(item => item.id === product.id);
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                saleItems.push({
-                    id: product.id,
-                    name: product.label,
-                    price: product.price,
-                    net_weight: product.net_weight,
-                    net_weight_unit_name: product.net_weight_unit_name,
-                    quantity: 1 // Start with a quantity of 1
-                });
-            }
-            renderSaleItems();
-        }
-
-        // --- renderSaleItems function ---
-        function renderSaleItems() {
-            const focusedInput = saleItemsTable.find('.quantity-input:focus');
-            const focusedIndex = focusedInput.data('index');
-            const focusedValue = focusedInput.val();
-
-            saleItemsTable.empty();
-            let total = 0;
-            saleItems.forEach((item, index) => {
-                // --- FIX START ---
-                // Ensure price and quantity are valid numbers, default to 0 if not.
-                const price = parseFloat(item.price) || 0;
-                const quantity = parseInt(item.quantity) || 0;
-                const subtotal = price * quantity;
-                const netWeight = item.net_weight || '';
-                const netWeightUnitName = item.net_weight_unit_name || '';
-                // --- FIX END ---
-
-                total += subtotal;
-                const row = `<tr>
-                    <td>${netWeight} ${netWeightUnitName} ${item.name}</td>
-                    <td>${price.toFixed(2)}</td>
-                    <td><input type="number" value="${quantity}" min="1" class="form-control form-control-sm quantity-input" data-index="${index}"></td>
-                    <td>${subtotal.toFixed(2)}</td>
-                    <td><button type="button" class="btn btn-danger btn-sm remove-item" data-index="${index}">Remove</button></td>
-                </tr>`;
-                saleItemsTable.append(row);
-            });
-            totalAmountSpan.text(total.toFixed(2));
-            updateChange();
+    @push('scripts')
+        {{-- Load the separate JS file (ensure this matches your file name) --}}
+        @vite('resources/js/create-sales.js')
         
-            if (focusedInput.length && focusedIndex !== undefined) {
-                const newFocusedInput = saleItemsTable.find(`.quantity-input[data-index="${focusedIndex}"]`);
-                if (newFocusedInput.length) {
-                newFocusedInput.focus().val(focusedValue);
-                }
+        {{-- CSS Fixes --}}
+        <style>
+            /* 1. Fix Autocomplete being hidden behind other elements */
+            .ui-autocomplete {
+                z-index: 9999 !important; /* Force it on top */
+                max-height: 300px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                border: 0;
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                border-radius: 0.5rem;
+                padding: 0.5rem;
+                background-color: white; /* Ensure background is white */
+            }
+            .ui-menu-item .ui-menu-item-wrapper {
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                cursor: pointer;
+            }
+            .ui-menu-item .ui-menu-item-wrapper.ui-state-active {
+                background: #0d6efd;
+                color: white;
+                border: none;
             }
 
-            saleForm.find('input[name^="sale_items"]').remove();
-            saleItems.forEach((item, index) => {
-                saleForm.append(`<input type="hidden" name="sale_items[${index}][id]" value="${item.id}">`);
-                saleForm.append(`<input type="hidden" name="sale_items[${index}][quantity]" value="${item.quantity}">`);
-                });
+            /* 2. Number Input Styling (Hide Arrows) */
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
             }
-
-            // --- Remove item event handler ---
-        saleItemsTable.on('click', '.remove-item', function() {
-            const index = $(this).data('index');
-                Swal.fire({
-                title: 'Are you sure?',
-                text: "This will remove the product from the sale.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, remove it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    saleItems.splice(index, 1);
-                    renderSaleItems();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Removed!',
-                        text: 'Product has been removed.',
-                        showConfirmButton: false,
-                        timer: 2000,
-                        position: 'top-end',
-                        toast: true
-                    });
-                }
-            });
-        });
-
-        saleItemsTable.on('blur', '.quantity-input', function() {
-            const $input = $(this);
-            const index = $input.data('index');
-            let newQuantity = parseInt($(this).val());
-
-            // Prevent invalid or empty input
-            if (!isNaN(newQuantity) && newQuantity < 1) {
-                // If input is invalid, reset to the last valid quantity
-                $input.val(saleItems[index].quantity);
-                return;
-            } else {
-            // Only re-render if the quantity actually changed
-                if (saleItems[index].quantity !== newQuantity) {
-                    saleItems[index].quantity = newQuantity;
-                    renderSaleItems();
-                }
+            input[type=number] {
+                -moz-appearance: textfield;
             }
-        });
-
-        paymentAmountInput.on('input', updateChange);
-
-        function updateChange() {
-            const total = parseFloat(totalAmountSpan.text());
-            const payment = parseFloat(paymentAmountInput.val()) || 0;
-            const change = payment - total;
-            changeAmountSpan
-                .text(change.toFixed(2))
-                .removeClass('text-success text-danger animate__animated animate__flash');
-
-            if (payment === 0) return;
-
-            if (change >= 0) {
-                changeAmountSpan.addClass('text-success animate__animated animate__flash');
-            } else {
-                    changeAmountSpan.addClass('text-danger animate__animated animate__flash');
-                }
-            }
-        
-            saleForm.on('submit', function(e) {
-        e.preventDefault();
-            
-        const total = parseFloat(totalAmountSpan.text());
-        const payment = parseFloat(paymentAmountInput.val()) || 0;
-            
-        if (saleItems.length === 0) {
-            Swal.fire({ icon: 'warning', title: 'No Products Added', text: 'Please add at least one product to the sale.' });
-            return;
-        }
-    
-        if (payment <= 0 || isNaN(payment)) {
-            Swal.fire({ icon: 'warning', title: 'Invalid Payment', text: 'Please enter a valid payment amount.' });
-            return;
-        }
-    
-        if (payment < total) {
-            Swal.fire({ icon: 'error', title: 'Insufficient Payment', text: 'Payment amount is less than total.' });
-            return;
-        }
-    
-        Swal.fire({
-            icon: 'question',
-            title: 'Confirm Sale',
-            text: 'Do you want to complete this sale?',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Record Sale',
-            cancelButtonText: 'No, Review Again'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // ✅ Hidden inputs are already handled in renderSaleItems
-                saleForm.off('submit');
-                saleForm.submit();
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Sale Recorded!',
-                    text: 'The sale has been saved successfully.',
-                    showConfirmButton: false,
-                    timer: 2000,
-                    position: 'top-end',
-                    toast: true
-                });
-            }
-        });
-    });
-});
-    console.log("✅ Autocomplete script executed");
-</script>
-
-@endpush
-
+            .letter-spacing-1 { letter-spacing: 1px; }
+        </style>
+    @endpush
 </x-app-layout>

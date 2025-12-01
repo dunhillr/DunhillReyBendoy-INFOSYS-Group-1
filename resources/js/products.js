@@ -4,6 +4,9 @@ import Swal from 'sweetalert2';
 
 $(function() {
     
+    // 🛑 GUARD: Stop if product table doesn't exist
+    if ($('#products-table').length === 0) return;
+
     $.ajaxSetup({
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
     });
@@ -49,12 +52,14 @@ $(function() {
                     render: (data) => `₱${parseFloat(data).toFixed(2)}`
                 },
                 
-                // ✅ STYLE UPDATE: Category Badge
+                // ✅ STYLE UPDATE: Improved Category Badge (Larger, Pill shape)
                 { 
                     data: 'category_name', 
                     name: 'category.name', 
                     render: function(data) {
-                        return `<span class="badge bg-light text-dark border">${data}</span>`;
+                        // Removed 'badge' class to prevent tiny font.
+                        // Added 'rounded-pill', 'px-3', 'py-1' for a nice tag look.
+                        return `<span class="d-inline-block px-3 py-2 rounded-pill bg-light border border-secondary-subtle text-secondary fw-bold shadow-sm" style="font-size: 0.85rem;">${data}</span>`;
                     }
                 },
                 
