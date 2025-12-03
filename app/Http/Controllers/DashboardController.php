@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class DashboardController extends Controller
 {
@@ -262,5 +263,58 @@ class DashboardController extends Controller
             ->orderByDesc('total_sold_last_year')
             ->limit(5)
             ->get();
+    }
+
+    /**
+     * AI Analysis Endpoint
+     */
+    public function askAi()
+    {
+        // 1. Gather Context Data (Reuse your existing queries roughly)
+        $now = Carbon::now();
+        $start = $now->copy()->startOfMonth();
+        $end = $now->copy()->endOfMonth();
+
+        // Get Top 5 Products this month
+        $topProducts = TransactionDetail::join('products', 'transaction_details.product_id', '=', 'products.id')
+            ->whereBetween('transaction_details.created_at', [$start, $end])
+            ->select('products.name', DB::raw('SUM(transaction_details.quantity) as qty'))
+            ->groupBy('products.name')
+            ->orderByDesc('qty')
+            ->limit(5)
+            ->get();
+
+        // Get Total Revenue
+        $totalRevenue = Transaction::whereBetween('created_at', [$start, $end])->sum('total_amount');
+
+        // 2. Construct the Prompt
+        $prompt = "Act as a business consultant for a small retail store (Sari-Sari store) in the Philippines. \n";
+        $prompt .= "Here is the sales data for " . $now->format('F Y') . ":\n";
+        $prompt .= "- Total Revenue: ₱" . number_format($totalRevenue, 2) . "\n";
+        $prompt .= "- Top Selling Products: " . $topProducts->map(fn($p) => "{$p->name} ({$p->qty} sold)")->implode(', ') . ".\n\n";
+        $prompt .= "Based on this, give me 3 specific, short, and actionable tips to increase profit next month. Keep the tone professional but encouraging. Do not use markdown formatting.";
+
+        try {
+            // 3. Call Local Ollama Instance
+            // Ensure Ollama is running (`ollama serve` or app is open)
+            $response = Http::timeout(300)->post('http://127.0.0.1:11434/api/generate', [
+                'model' => 'mistral', // Or 'llama3' depending on what you pulled
+                'prompt' => $prompt,
+                'stream' => false,
+            ]);
+
+            if ($response->successful()) {
+                $aiText = $response->json()['response'];
+                return response()->json(['success' => true, 'message' => $aiText]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Ollama API Error: ' . $response->status()]);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Could not connect to AI. Ensure Ollama is running. (Error: ' . $e->getMessage() . ')'
+            ]);
+        }
     }
 }

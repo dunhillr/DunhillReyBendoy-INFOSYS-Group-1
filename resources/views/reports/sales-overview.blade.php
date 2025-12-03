@@ -45,10 +45,20 @@
                         </button>
                     </div>
                     
-                    {{-- Export / Print (Optional future-proofing) --}}
-                    <div class="col-md-3">
-                        <button class="btn btn-outline-secondary w-100" onclick="window.print()">
-                            <i class="fas fa-print me-2"></i>Print Report
+                    {{-- Actions (Print & Automation) --}}
+                    <div class="col-md-3 d-flex gap-2">
+                        {{-- Print Button --}}
+                        <button class="btn btn-outline-secondary flex-grow-1" onclick="window.print()" title="Print Page">
+                            <i class="fas fa-print"></i>
+                        </button>
+
+                        {{-- ✅ NEW: Automation Button --}}
+                        <button id="send-report-btn" 
+                            class="btn btn-success text-white flex-grow-1 shadow-sm"
+                            {{-- ✅ ADD THIS LINE: Pass the full URL dynamically --}}
+                            data-route="{{ route('reports.send-report') }}">
+                                            
+                            <i class="fas fa-paper-plane me-2"></i>Email Report
                         </button>
                     </div>
                 </div>
