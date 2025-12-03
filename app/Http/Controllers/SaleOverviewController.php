@@ -8,6 +8,7 @@ use App\Models\TransactionDetail;
 use App\Models\Product;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class SaleOverviewController extends Controller
 {
@@ -72,6 +73,43 @@ class SaleOverviewController extends Controller
             ->addColumn('total_quantity', fn($t) => $t->total_quantity)
             ->addColumn('total_revenue', fn($t) => $t->total_revenue)
             ->make(true);
+    }
+
+    /**
+     * Send Daily Report to n8n Automation
+     */
+    public function sendReport()
+    {
+        $today = now()->format('Y-m-d');
+
+        // 1. Calculate Today's Metrics
+        $totalRevenue = Transaction::whereDate('created_at', $today)->sum('total_amount');
+        $totalTransactions = Transaction::whereDate('created_at', $today)->count();
+
+        // 2. Prepare Data Payload
+        $payload = [
+            'date' => now()->format('F j, Y'),
+            'total_revenue' => '₱' . number_format($totalRevenue, 2),
+            'total_transactions' => $totalTransactions,
+            'status' => 'Generated via SariSmart POS'
+        ];
+
+        try {
+            // 3. Send to n8n Webhook
+            // ✅ UPDATE THIS LINE with your actual n8n Test URL
+            $n8nWebhookUrl = 'https://helpless-crab-57.hooks.n8n.cloud/webhook-test/daily-report';
+
+            // ✅ FIX: Increase timeout to 60 seconds
+            $response = Http::timeout(60)->post($n8nWebhookUrl, $payload);
+            
+            if ($response->successful()) {
+                return response()->json(['success' => true, 'message' => 'Report sent to automation workflow!']);
+            } else {
+                return response()->json(['success' => false, 'message' => 'n8n Error: ' . $response->status()]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Connection Failed: ' . $e->getMessage()]);
+        }
     }
 
 }

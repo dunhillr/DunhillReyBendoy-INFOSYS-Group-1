@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard-overview', [DashboardController::class, 'index'])->name('dashboard.overview');
     Route::get('/dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
+    Route::get('/dashboard/ask-ai', [DashboardController::class, 'askAi'])->name('dashboard.ai');
 
     // --- Product Routes ---
     Route::prefix('products')->name('products.')->group(function () {
@@ -54,6 +55,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- Reports / Sales Overview ---
     Route::get('/sales-overview', [SaleOverviewController::class, 'index'])->name('reports.sales-overview');
     Route::get('/sales-overview/data', [SaleOverviewController::class, 'getData'])->name('reports.sales-data');
+    // ✅ NEW: Automation Route
+    Route::post('/sales-overview/send-report', [SaleOverviewController::class, 'sendReport'])->name('reports.send-report');
 
     // --- Profile ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
