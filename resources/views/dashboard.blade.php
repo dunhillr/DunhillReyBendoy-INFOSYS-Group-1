@@ -61,11 +61,22 @@
                         <div class="tab-pane fade show active" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
                             <div class="row">
                                 
-                                {{-- 1. Monthly Revenue Trend --}}
+                                {{-- 1. Revenue Trend Chart (With Toggle) --}}
                                 <div class="col-12 mb-4">
                                     <div class="card shadow-sm h-100 border-0 bg-light">
                                         <div class="card-body">
-                                            <h5 class="card-title mb-3 fw-bold">Monthly Revenue Trend</h5>
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="card-title mb-0 fw-bold" id="revenue-chart-title">
+                                                    Revenue Trend
+                                                </h5>
+                                                
+                                                {{-- ✅ NEW: Toggle Dropdown --}}
+                                                <select id="revenue-timeframe" class="form-select form-select-sm w-auto shadow-sm border-0 fw-bold text-primary">
+                                                    <option value="monthly" selected>📅 This Month (Daily)</option>
+                                                    <option value="yearly">📈 This Year (Monthly)</option>
+                                                </select>
+                                            </div>
+                                            
                                             <div id="monthlyRevenueChart" style="height: 300px;" class="d-flex justify-content-center align-items-center">
                                                 <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
                                             </div>
@@ -73,16 +84,15 @@
                                     </div>
                                 </div>
                             
-                                {{-- 2. Top Selling Products (UPDATED HEADER) --}}
+                                {{-- 2. Top Selling Products --}}
                                 <div class="col-lg-6 mb-4">
                                     <div class="card shadow-sm h-100 border-0 bg-light">
                                         <div class="card-body">
-                                            {{-- 💡 UX IMPROVEMENT: Added dynamic month name --}}
                                             <h5 class="card-title mb-3 fw-bold">
                                                 Top 10 Selling Products 
                                                 <small class="text-muted fw-normal ms-1">({{ $recs['currentMonthName'] }})</small>
                                             </h5>
-                                            {{-- ✅ FIX: Changed height to min-height to allow expansion --}}
+                                            {{-- Min-height allows expansion --}}
                                             <div id="topSellingProductsChart" style="min-height: 350px;" class="d-flex justify-content-center align-items-center">
                                                 <div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Loading...</span></div>
                                             </div>
@@ -90,11 +100,10 @@
                                     </div>
                                 </div>
 
-                                {{-- 3. Sales by Category (UPDATED HEADER) --}}
+                                {{-- 3. Sales by Category --}}
                                 <div class="col-lg-6 mb-4">
                                     <div class="card shadow-sm h-100 border-0 bg-light">
                                         <div class="card-body">
-                                            {{-- 💡 UX IMPROVEMENT: Added dynamic month name --}}
                                             <h5 class="card-title mb-3 fw-bold">
                                                 Sales Contribution by Category
                                                 <small class="text-muted fw-normal ms-1">({{ $recs['currentMonthName'] }})</small>
@@ -112,6 +121,33 @@
                         <!-- TAB PANE 2: MARKET INSIGHTS -->
                         <div class="tab-pane fade" id="insights" role="tabpanel" aria-labelledby="insights-tab">
                             <div class="row">
+                                
+                                {{-- AI ANALYST BANNER --}}
+                                <div class="col-12 mb-4">
+                                    <div class="card border-0 bg-primary bg-gradient text-white shadow-sm rounded-3 overflow-hidden" style="position: relative;">
+                                        <i class="fas fa-robot position-absolute" style="font-size: 10rem; right: -20px; top: -30px; opacity: 0.1;"></i>
+                                        <div class="card-body p-4 d-flex justify-content-between align-items-center position-relative">
+                                            <div>
+                                                <h4 class="fw-bold mb-1"><i class="fas fa-magic me-2"></i>SariSmart AI Analyst</h4>
+                                                <p class="mb-0 opacity-75" style="max-width: 500px;">
+                                                    Let our AI analyze your sales patterns and generate actionable strategies to boost your profit next month.
+                                                </p>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                {{-- ✅ NEW: Language Selector --}}
+                                                <select id="ai-language" class="form-select form-select-sm fw-bold text-primary border-0 shadow-sm" style="width: 110px; cursor: pointer;">
+                                                    <option value="en" selected>🇺🇸 English</option>
+                                                    <option value="tl">🇵🇭 Tagalog</option>
+                                                </select>
+                                            
+                                                <button id="ask-ai-btn" class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm">
+                                                    <i class="fas fa-brain me-2"></i>Generate
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-12 mb-3">
                                     <div class="alert alert-info border-0 d-flex align-items-center" role="alert">
                                         <i class="fas fa-info-circle me-2 fs-4"></i>
@@ -122,92 +158,34 @@
                                     </div>
                                 </div>
 
-                                {{-- 🆕 AI ANALYST BANNER --}}
-                                <div class="col-12 mb-4">
-                                    <div class="card border-0 bg-primary bg-gradient text-white shadow-sm rounded-3 overflow-hidden" style="position: relative;">
-                                        {{-- Decorative background icon --}}
-                                        <i class="fas fa-robot position-absolute" style="font-size: 10rem; right: -20px; top: -30px; opacity: 0.1;"></i>
-
-                                        <div class="card-body p-4 d-flex justify-content-between align-items-center position-relative">
-                                            <div>
-                                                <h4 class="fw-bold mb-1"><i class="fas fa-magic me-2"></i>SariSmart AI Analyst</h4>
-                                                <p class="mb-0 opacity-75" style="max-width: 500px;">
-                                                    Let our AI analyze your sales patterns and generate actionable strategies to boost your profit next month.
-                                                </p>
-                                            </div>
-                                            <button id="ask-ai-btn" class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm">
-                                                <i class="fas fa-brain me-2"></i>Generate Insights
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Current Month Recs --}}
-                                <div class="col-md-6 mb-3">
-                                    <div class="card h-100 shadow-sm {{ !$recs['isSecondHalf'] ? 'border-primary border-top border-4' : 'border-light' }}">
+                                {{-- 1. CURRENT MONTH RECS CHART (Stacked Top) --}}
+                                <div class="col-12 mb-4"> {{-- ✅ Changed from col-md-6 to col-12 --}}
+                                    @php $isSecondHalf = now()->day > 15; @endphp
+                                    <div class="card h-100 shadow-sm {{ !$isSecondHalf ? 'border-primary border-top border-4' : 'border-light' }}">
                                         <div class="card-body">
-                                            <h6 class="mb-3 fw-bold {{ !$recs['isSecondHalf'] ? 'text-primary' : 'text-muted' }}">
+                                            <h6 class="mb-3 fw-bold {{ !$isSecondHalf ? 'text-primary' : 'text-muted' }}">
                                                 📅 {{ $recs['currentMonthName'] }} All-Time Bestsellers
-                                                @if(!$recs['isSecondHalf']) <span class="badge bg-primary ms-2">Focus Now</span> @endif
+                                                @if(!$isSecondHalf) <span class="badge bg-primary ms-2">Focus Now</span> @endif
                                             </h6>
-                                            <div id="currentMonthRecsChart" style="height: 300px;" class="d-flex justify-content-center align-items-center">
+                                            <div id="currentMonthRecsChart" style="height: 350px;" class="d-flex justify-content-center align-items-center">
                                                 <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Next Month Recs --}}
-                                <div class="col-md-6 mb-3">
-                                    <div class="card h-100 shadow-sm {{ $recs['isSecondHalf'] ? 'border-success border-top border-4' : 'border-light' }}">
+                                {{-- 2. NEXT MONTH RECS CHART (Stacked Bottom) --}}
+                                <div class="col-12 mb-4"> {{-- ✅ Changed from col-md-6 to col-12 --}}
+                                    <div class="card h-100 shadow-sm {{ $isSecondHalf ? 'border-success border-top border-4' : 'border-light' }}">
                                         <div class="card-body">
-                                            <h6 class="mb-3 fw-bold {{ $recs['isSecondHalf'] ? 'text-success' : 'text-muted' }}">
+                                            <h6 class="mb-3 fw-bold {{ $isSecondHalf ? 'text-success' : 'text-muted' }}">
                                                 🚀 Upcoming: {{ $recs['nextMonthName'] }} All-Time Bestsellers
-                                                @if($recs['isSecondHalf']) <span class="badge bg-success ms-2">Prepare Stock</span> @endif
+                                                @if($isSecondHalf) <span class="badge bg-success ms-2">Prepare Stock</span> @endif
                                             </h6>
-                                            <div id="nextMonthRecsChart" style="height: 300px;" class="d-flex justify-content-center align-items-center">
+                                            <div id="nextMonthRecsChart" style="height: 350px;" class="d-flex justify-content-center align-items-center">
                                                 <div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- 🆕 AI INSIGHTS MODAL --}}
-                        <div class="modal fade" id="aiModal" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                <div class="modal-content border-0 shadow-lg">
-                                    <div class="modal-header bg-primary text-white border-0">
-                                        <h5 class="modal-title fw-bold"><i class="fas fa-robot me-2"></i>AI Strategic Advice</h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body p-4 bg-light">
-                                        
-                                        {{-- Loading State --}}
-                                        <div id="ai-loading" class="text-center py-5">
-                                            <div class="spinner-grow text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-                                            <h5 class="fw-bold text-secondary">Analyzing Sales Data...</h5>
-                                            <p class="text-muted">Connecting to local AI model...</p>
-                                        </div>
-                                    
-                                        {{-- Content State --}}
-                                        <div id="ai-content" class="d-none">
-                                            <div class="p-3 bg-white rounded-3 shadow-sm border mb-3">
-                                                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">🚀 Strategic Recommendations</h6>
-                                                <div id="ai-response-text" class="text-secondary" style="line-height: 1.8; white-space: pre-line;">
-                                                    {{-- AI Text Goes Here --}}
-                                                </div>
-                                            </div>
-                                            <div class="alert alert-info border-0 d-flex align-items-center mb-0">
-                                                <i class="fas fa-info-circle me-2 fs-4"></i>
-                                                <small>Generated by <strong>Ollama (Mistral)</strong> based on your store's specific historical performance.</small>
-                                            </div>
-                                        </div>
-                                    
-                                    </div>
-                                    <div class="modal-footer border-0 bg-light">
-                                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
                                     </div>
                                 </div>
                             </div>
@@ -220,10 +198,47 @@
         </div>
     </div>
 
+    {{-- AI INSIGHTS MODAL --}}
+    <div class="modal fade" id="aiModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-robot me-2"></i>AI Strategic Advice</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    
+                    {{-- Loading State --}}
+                    <div id="ai-loading" class="text-center py-5">
+                        <div class="spinner-grow text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                        <h5 class="fw-bold text-secondary">Analyzing Sales Data...</h5>
+                        <p class="text-muted">Connecting to local AI model...</p>
+                    </div>
+
+                    {{-- Content State --}}
+                    <div id="ai-content" class="d-none">
+                        <div class="p-3 bg-white rounded-3 shadow-sm border mb-3">
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">🚀 Strategic Recommendations</h6>
+                            <div id="ai-response-text" class="text-secondary" style="line-height: 1.8; white-space: pre-line;"></div>
+                        </div>
+                        <div class="alert alert-info border-0 d-flex align-items-center mb-0">
+                            <i class="fas fa-info-circle me-2 fs-4"></i>
+                            <small>Generated by <strong>Ollama (Mistral)</strong> based on your store's specific historical performance.</small>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
     window.routes = {
         salesData: "{{ route('dashboard.summary') }}",
-        askAi: "{{ route('dashboard.ai') }}" 
+        askAi: "{{ route('dashboard.ai') }}"
     };
     </script>
 
@@ -232,7 +247,6 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         
         <style>
-            /* Essential Styles for Tab/Chart stability */
             .tab-pane { width: 100% !important; }
             #currentMonthRecsChart, #nextMonthRecsChart, #monthlyRevenueChart, #topSellingProductsChart, #salesByCategoryChart {
                 min-height: 300px !important;
@@ -246,7 +260,6 @@
                 var triggerTabList = [].slice.call(document.querySelectorAll('button[data-bs-toggle="tab"]'))
                 triggerTabList.forEach(function (triggerEl) {
                     triggerEl.addEventListener('shown.bs.tab', function (event) {
-                        // Double trigger to handle animation timing
                         window.dispatchEvent(new Event('resize'));
                         setTimeout(function() {
                             window.dispatchEvent(new Event('resize'));

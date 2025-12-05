@@ -52,14 +52,29 @@
                             <i class="fas fa-print"></i>
                         </button>
 
-                        {{-- ✅ NEW: Automation Button --}}
-                        <button id="send-report-btn" 
-                            class="btn btn-success text-white flex-grow-1 shadow-sm"
-                            {{-- ✅ ADD THIS LINE: Pass the full URL dynamically --}}
-                            data-route="{{ route('reports.send-report') }}">
-                                            
-                            <i class="fas fa-paper-plane me-2"></i>Email Report
-                        </button>
+                        {{-- ✅ NEW: Automation Dropdown --}}
+                        <div class="btn-group flex-grow-1">
+                            <button type="button" class="btn btn-success text-white shadow-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-paper-plane me-2"></i>Email Report
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button class="dropdown-item send-report-item" data-type="daily">
+                                        <i class="fas fa-calendar-day me-2 text-muted"></i>Daily Report
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item send-report-item" data-type="weekly">
+                                        <i class="fas fa-calendar-week me-2 text-muted"></i>Weekly Report
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item send-report-item" data-type="monthly">
+                                        <i class="fas fa-calendar-alt me-2 text-muted"></i>Monthly Report
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

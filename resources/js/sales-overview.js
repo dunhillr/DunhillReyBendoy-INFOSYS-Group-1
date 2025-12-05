@@ -70,20 +70,17 @@ $(function() {
         ],
         language: { emptyTable: "No sales records found for this period." },
         drawCallback: function(settings) {
-            const api = this.api();
-            let totalQty = 0;
-            let totalRevenue = 0;
+            // ✅ FIX: Get the Grand Totals sent by the Server
+            const json = settings.json;
 
-            api.rows({ page: 'current' }).data().each(function(row) {
-                totalQty += parseFloat(row.total_quantity);
-                const rev = typeof row.total_revenue === 'string' 
-                    ? parseFloat(row.total_revenue.replace(/[₱,]/g, '')) 
-                    : parseFloat(row.total_revenue);
-                if(!isNaN(rev)) totalRevenue += rev;
-            });
-
-            $('#total-quantity').text(totalQty.toLocaleString());
-            $('#total-revenue').text('₱' + totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+            if (json) {
+                // Update footer with the server-calculated totals
+                $('#total-quantity').text(parseInt(json.grand_total_quantity || 0).toLocaleString());
+                
+                $('#total-revenue').text(
+                    '₱' + parseFloat(json.grand_total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })
+                );
+            }
         }
     });
 
@@ -94,52 +91,43 @@ $(function() {
         updatePeriodLabel();
     });
 
-    // 3. Automation Button Logic
-    $('#send-report-btn').on('click', function() {
-        const btn = $(this);
-        const originalContent = btn.html();
-        
-        const url = btn.data('route'); 
+    // 3. ✅ NEW: Automation Dropdown Logic
+    $('.send-report-item').on('click', function(e) {
+        e.preventDefault();
 
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Sending...');
+        const type = $(this).data('type'); // Get 'daily', 'weekly', or 'monthly'
+        const url = "{{ route('reports.send-report') }}"; // Hardcoded for simplicity here since it's same route
+
+        // Show loading (Optional: use Swal loading state for cleaner UI)
+        Swal.fire({
+            title: 'Sending ' + type + ' report...',
+            didOpen: () => { Swal.showLoading() }
+        });
 
         $.ajax({
-            url: url, 
+            url: '/sales-overview/send-report', // Or use window.routes if setup
             type: 'POST',
             data: {
-                _token: $('meta[name="csrf-token"]').attr('content') 
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                type: type // Pass the type
             },
             success: function(response) {
+                Swal.close(); // Close loader
                 if (response.success) {
-                    // ✅ CUSTOM SUCCESS MESSAGE
                     Swal.fire({
                         icon: 'success',
-                        title: 'Report Sent!',
-                        text: 'The daily sales report has been emailed successfully.',
-                        confirmButtonColor: '#198754', // Bootstrap Success Green
+                        title: 'Sent!',
+                        text: response.message,
                         timer: 3000,
                         timerProgressBar: true
                     });
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Sending Failed',
-                        text: response.message,
-                        confirmButtonColor: '#dc3545'
-                    });
+                    Swal.fire({ icon: 'error', title: 'Failed', text: response.message });
                 }
             },
             error: function(xhr) {
-                console.error(xhr);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'System Error',
-                    text: 'Could not connect to the server. Please try again later.',
-                    confirmButtonColor: '#dc3545'
-                });
-            },
-            complete: function() {
-                btn.prop('disabled', false).html(originalContent);
+                Swal.close();
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Could not connect to server.' });
             }
         });
     });

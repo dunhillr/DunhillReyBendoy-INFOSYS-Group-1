@@ -33,25 +33,76 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
 
-            // 1. Monthly Revenue Chart
-            if (data.currentMonthRevenue) {
-                const revenueChart = new ApexCharts(document.querySelector("#monthlyRevenueChart"), {
-                    chart: { type: 'area', height: 300, toolbar: { show: false } },
-                    stroke: { curve: 'smooth', width: 3 },
-                    series: [
-                        { name: 'Current Month', data: data.currentMonthRevenue },
-                        { name: 'Previous Month', data: data.prevMonthRevenue }
-                    ],
-                    xaxis: { categories: data.currentMonthRevenue.map((_, i) => String(i + 1).padStart(2, '0')) },
-                    colors: ['#0d6efd', '#ffc107'],
-                    dataLabels: { enabled: false },
-                    grid: { borderColor: '#dee2e6' },
-                    fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } },
+            // 1. Revenue Chart Logic
+            let revenueChart; // Declare variable
+
+            const initRevenueChart = () => {
+                if (data.currentMonthRevenue) {
+                    const options = {
+                        chart: { 
+                            type: 'area', 
+                            height: 300, 
+                            toolbar: { show: false },
+                            id: 'revenue-main-chart' // ID for updates
+                        },
+                        stroke: { curve: 'smooth', width: 3 },
+                        // Default to Monthly View
+                        series: [
+                            { name: 'Current Month', data: data.currentMonthRevenue },
+                            { name: 'Previous Month', data: data.prevMonthRevenue }
+                        ],
+                        xaxis: { 
+                            categories: data.currentMonthRevenue.map((_, i) => String(i + 1).padStart(2, '0')) 
+                        },
+                        colors: ['#0d6efd', '#ffc107'], // Blue vs Yellow
+                        dataLabels: { enabled: false },
+                        grid: { borderColor: '#dee2e6' },
+                        fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } },
+                        tooltip: {
+                            y: { formatter: (val) => "₱" + (val || 0).toLocaleString() }
+                        }
+                    };
+                    
+                    revenueChart = new ApexCharts(document.querySelector("#monthlyRevenueChart"), options);
+                    revenueChart.render();
+                    hideLoader("#monthlyRevenueChart");
+                } else {
+                    showMessage("#monthlyRevenueChart", "No revenue data available.");
+                }
+            };
+
+            initRevenueChart();
+
+            // ✅ LISTENER: Handle Timeframe Toggle
+            const timeframeSelect = document.getElementById('revenue-timeframe');
+            if(timeframeSelect && revenueChart) {
+                timeframeSelect.addEventListener('change', function() {
+                    const timeframe = this.value;
+                    
+                    if (timeframe === 'yearly') {
+                        // Update to Yearly Data (Bar Chart style usually better for months)
+                        revenueChart.updateOptions({
+                            chart: { type: 'bar' }, // Switch to Bar for year view
+                            xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
+                            colors: ['#6610f2', '#adb5bd'], // Purple (Current) vs Gray (Last Year)
+                        });
+                        revenueChart.updateSeries([
+                            { name: `Current Year (${data.yearlyData.currentYearLabel})`, data: data.yearlyData.current },
+                            { name: `Previous Year (${data.yearlyData.prevYearLabel})`, data: data.yearlyData.previous }
+                        ]);
+                    } else {
+                        // Revert to Monthly Data (Area Chart)
+                        revenueChart.updateOptions({
+                            chart: { type: 'area' },
+                            xaxis: { categories: data.currentMonthRevenue.map((_, i) => String(i + 1).padStart(2, '0')) },
+                            colors: ['#0d6efd', '#ffc107'],
+                        });
+                        revenueChart.updateSeries([
+                            { name: 'Current Month', data: data.currentMonthRevenue },
+                            { name: 'Previous Month', data: data.prevMonthRevenue }
+                        ]);
+                    }
                 });
-                revenueChart.render();
-                hideLoader("#monthlyRevenueChart");
-            } else {
-                showMessage("#monthlyRevenueChart", "No revenue data available.");
             }
 
             // 2. Top Selling Products Chart
@@ -124,19 +175,72 @@ document.addEventListener('DOMContentLoaded', () => {
                 showMessage("#salesByCategoryChart", "No category sales data yet.");
             }
 
-            // 4. MARKET INSIGHTS: Seasonal Forecast Charts
+            // 4. MARKET INSIGHTS: Seasonal Forecast Charts (Combo: Average vs Spike)
             const createRecChart = (elementId, chartData, color) => {
-                if (chartData && chartData.length > 0) {
+                // 🛑 SAFETY CHECK: Ensure chartData exists and has length
+                if (chartData && Array.isArray(chartData) && chartData.length > 0) {
+                    
                     const options = {
-                        chart: { type: 'bar', height: 300, toolbar: { show: false } },
-                        plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
-                        series: [{ name: 'Sold', data: chartData.map(i => i.total_sold_last_year) }],
-                        xaxis: { categories: chartData.map(i => i.product_name) },
-                        colors: [color],
+                        chart: { 
+                            type: 'line', 
+                            height: 350, // ✅ Increased from 300 to 350 for better full-width aspect ratio
+                            toolbar: { show: false },
+                            parentHeightOffset: 0
+                        },
+                        series: [
+                            {
+                                name: 'Normal Monthly Average',
+                                type: 'column',
+                                // ✅ FIX: Ensure value is a number, default to 0
+                                data: chartData.map(i => parseFloat(i.avg_sales || 0))
+                            },
+                            {
+                                name: 'Seasonal Spike (Forecast)',
+                                type: 'line',
+                                // ✅ FIX: Ensure value is a number, default to 0
+                                data: chartData.map(i => parseFloat(i.target_sales || 0))
+                            }
+                        ],
+                        xaxis: { 
+                            // ✅ FIX: Ensure categories exist
+                            categories: chartData.map(i => i.product_name || 'Unknown Product') 
+                        },
+                        colors: ['#adb5bd', color], 
+                        
+                        stroke: { 
+                            width: [0, 4], 
+                            curve: 'smooth'
+                        },
+                        
+                        plotOptions: { 
+                            bar: { 
+                                columnWidth: '50%', 
+                                borderRadius: 4 
+                            } 
+                        },
+                        
                         grid: { borderColor: '#f1f1f1' },
-                        dataLabels: { enabled: true, style: { colors: ['#fff'] } },
-                        tooltip: { y: { formatter: (val) => val.toLocaleString() + " units" } }
+                        
+                        markers: { size: 5 }, 
+                        
+                        dataLabels: { 
+                            enabled: true, 
+                            enabledOnSeries: [1], 
+                            style: { colors: [color] } 
+                        },
+                        
+                        tooltip: {
+                            y: {
+                                formatter: function(value) {
+                                    return parseInt(value).toLocaleString() + " units";
+                                }
+                            }
+                        }
                     };
+                    
+                    // Clear previous contents (if any) to prevent duplicate rendering issues
+                    document.querySelector(elementId).innerHTML = "";
+                    
                     const chart = new ApexCharts(document.querySelector(elementId), options);
                     chart.render();
                     hideLoader(elementId);
@@ -145,38 +249,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
 
+            // Render Charts
             if (data.recs) {
+                // Current Month: Blue Line
                 createRecChart("#currentMonthRecsChart", data.recs.current, '#0d6efd');
+                // Next Month: Green Line
                 createRecChart("#nextMonthRecsChart", data.recs.next, '#198754');
             } else {
                 showMessage("#currentMonthRecsChart", "Data unavailable.");
                 showMessage("#nextMonthRecsChart", "Data unavailable.");
             }
-
-        })
-        .catch(err => {
-            console.error('Error fetching dashboard data:', err);
-            showMessage("#monthlyRevenueChart", "Failed to load data.");
-            showMessage("#topSellingProductsChart", "Failed to load data.");
-            showMessage("#salesByCategoryChart", "Failed to load data.");
-        });
-    }
+    });
 
     // 5. AI ANALYST LOGIC
     const askAiBtn = document.getElementById('ask-ai-btn');
+    const langSelect = document.getElementById('ai-language'); 
+
     if (askAiBtn) {
         askAiBtn.addEventListener('click', function() {
             const aiModalEl = document.getElementById('aiModal');
-            
-            // ✅ FIX: Use 'getOrCreateInstance' to prevent duplicate modals/backdrops
             const aiModal = bootstrap.Modal.getOrCreateInstance(aiModalEl);
             aiModal.show();
 
             document.getElementById('ai-loading').classList.remove('d-none');
             document.getElementById('ai-content').classList.add('d-none');
 
-            // Note: This URL must be defined in your routes/web.php
-            fetch(window.routes.askAi)
+            // Get selected language
+            const selectedLang = langSelect ? langSelect.value : 'en'; 
+            
+            // Construct URL
+            const url = `${window.routes.askAi}?lang=${selectedLang}`;
+
+            fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('ai-loading').classList.add('d-none');
@@ -190,11 +294,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 })
                 .catch(err => {
+                    console.error("AI Error:", err); // ✅ FIX: Log the error here
                     document.getElementById('ai-loading').classList.add('d-none');
                     document.getElementById('ai-content').classList.remove('d-none');
                     document.getElementById('ai-response-text').innerHTML = 
                         `<span class="text-danger fw-bold"><i class="fas fa-wifi me-2"></i>Connection Error. Ensure Ollama is running and route is defined.</span>`;
                 });
         });
-    }
-});
+    }}
+}); 
