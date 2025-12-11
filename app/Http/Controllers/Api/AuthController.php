@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -55,6 +56,37 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Logged out successfully'
         ]);
+    }
+
+    // POST /api/register
+    public function register(Request $request)
+    {
+        // 1. Validate Input
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed', // 'confirmed' checks 'password_confirmation'
+        ]);
+
+        // 2. Create User
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        // 3. Create Token (Auto-login)
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // 4. Return Response
+        return response()->json([
+            'success' => true,
+            'message' => 'User registered successfully',
+            'data' => [
+                'user' => $user,
+                'token' => $token, // Return token so app can save it
+            ]
+        ], 201);
     }
     
     // GET /api/user
