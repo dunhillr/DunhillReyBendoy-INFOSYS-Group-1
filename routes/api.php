@@ -11,9 +11,10 @@ use App\Http\Controllers\DashboardController;
 |--------------------------------------------------------------------------
 */
 
-// ✅ 1. Public Routes (No Login Required)
+// ✅ 1. Public Routes
 // This allows the mobile app to get a token
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 
 // 🔒 2. Protected Routes (Login Required)
 // All routes inside here require a valid Bearer Token

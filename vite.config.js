@@ -10,8 +10,16 @@ export default defineConfig({
             jQuery: 'jquery',
         }),
         laravel({
-            input: ['resources/sass/app.scss',
-                    'resources/js/app.js'],
+             input: [
+                'resources/css/app.css',
+                'resources/js/app.js',          // Global stuff (Bootstrap/Alpine)
+                'resources/js/dashboard.js',    // Dashboard only (Charts)
+                'resources/js/products.js',     // Product List only (DataTables)
+                'resources/js/create-sales.js',
+                'resources/js/sales-overview.js',
+                'resources/js/transactions.js',
+                'resources/js/product-create.js',  // POS Terminal only
+            ],
             refresh: true,
         }),
     ],
