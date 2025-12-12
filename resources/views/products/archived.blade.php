@@ -109,8 +109,11 @@
 
             // 3. Restore Product Logic
             $(document).on('click', '.restore-product', function () {
-                const productId = $(this).data('id');
-
+                // ❌ DELETE THIS: const productId = $(this).data('id');
+                
+                // ✅ ADD THIS: Get the full valid URL from the button
+                const restoreUrl = $(this).data('route');
+            
                 Swal.fire({
                     icon: 'question',
                     title: 'Restore Product?',
@@ -118,14 +121,18 @@
                     showCancelButton: true,
                     confirmButtonText: 'Yes, Restore',
                     cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#198754', // Success Green
-                    cancelButtonColor: '#6c757d'   // Secondary Gray
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: `/products/${productId}/restore`,
+                            // ✅ USE THE VARIABLE HERE
+                            url: restoreUrl, 
                             type: "POST",
-                            // No need for 'data: {_token}' because of ajaxSetup above
+                            // Ensure CSRF token is present if not globally setup
+                            data: {
+                                _token: $('meta[name="csrf-token"]').attr('content')
+                            },
                             success: function (response) {
                                 Swal.fire('Restored!', response.message, 'success');
                                 archivedTable.ajax.reload(null, false);

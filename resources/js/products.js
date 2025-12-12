@@ -134,34 +134,34 @@ $(function() {
     });
 
     // Delete Logic
-    $(document).on('click', '.delete-product', function (e) {
-        e.preventDefault();
-        const productId = $(this).data('id');
-        const deleteUrl = $(this).data('route'); 
+    $(document).on('click', '.delete-product', function() { 
+    
+        // ✅ Get the valid URL directly from the button attribute
+        var archiveUrl = $(this).data('route'); 
 
         Swal.fire({
-            icon: 'warning',
             title: 'Archive Product?',
-            text: 'This will move the product to the archive.',
+            text: "This product will be hidden from the active list.",
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, Archive',
-            cancelButtonText: 'No, Cancel',
             confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6'
-        }).then(result => {
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, archive it!'
+        }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: deleteUrl, 
-                    type: 'POST',
-                    data: { _method: 'DELETE' },
+                    url: archiveUrl, // Uses the variable from data-route
+                    type: 'DELETE',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
                     success: function(response) {
                         Swal.fire('Archived!', response.message, 'success');
-                        if (window.productsTable) {
-                            window.productsTable.ajax.reload(null, false);
-                        }
+                        $('#products-table').DataTable().ajax.reload();
                     },
                     error: function(xhr) {
-                        Swal.fire('Error', xhr.responseJSON?.message || 'An error occurred.', 'error');
+                        console.error(xhr.responseText);
+                        Swal.fire('Error!', 'Could not archive product.', 'error');
                     }
                 });
             }

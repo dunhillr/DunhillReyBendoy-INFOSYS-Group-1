@@ -89,40 +89,71 @@ class SaleOverviewController extends Controller
     public function sendReport(Request $request)
     {
         $type = $request->input('type', 'daily'); // Default to daily if triggered manually
-        $now = Carbon::now();
+        $now = Carbon::today(); // Use today() to capture 12:00 AM onwards
 
-        // 1. Determine Date Range & Title based on Type
+        // 1. Determine Date Range & Title
         if ($type === 'weekly') {
+            // Weekly Logic
             $startDate = $now->copy()->startOfWeek();
             $endDate = $now->copy()->endOfWeek();
-            $title = "Weekly Sales Report ({$startDate->format('M d')} - {$endDate->format('M d')})";
+            $title = "Weekly Sales Report";
+            $dateLabel = $startDate->format('M d') . ' - ' . $endDate->format('M d, Y');
+
         } elseif ($type === 'monthly') {
+            // Monthly Logic
             $startDate = $now->copy()->startOfMonth();
             $endDate = $now->copy()->endOfMonth();
-            $title = "Monthly Sales Report ({$now->format('F Y')})";
+            $title = "Monthly Sales Report";
+            $dateLabel = $now->format('F Y');
+
         } else {
-            // Default: Daily
+            // Default: Daily Logic
             $startDate = $now->copy()->startOfDay();
             $endDate = $now->copy()->endOfDay();
-            $title = "Daily Sales Report ({$now->format('F j, Y')})";
+            $title = "Daily Sales Report";
+            $dateLabel = $now->format('F j, Y');
         }
 
-        // 2. Calculate Metrics for that Range
+        // 2. Calculate Metrics (Using Transaction Model)
         $totalRevenue = Transaction::whereBetween('created_at', [$startDate, $endDate])->sum('total_amount');
         $totalTransactions = Transaction::whereBetween('created_at', [$startDate, $endDate])->count();
 
-        // 3. Prepare Data Payload
+        // 3. Get Top 3 Products (Using TransactionDetail)
+        // We JOIN with the parent 'transactions' table to filter by date safely
+        $topProducts = TransactionDetail::select('transaction_details.product_name', DB::raw('sum(transaction_details.quantity) as qty'))
+            ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id') // Link Child to Parent
+            ->whereBetween('transactions.created_at', [$startDate, $endDate]) // Filter using Parent's date
+            ->groupBy('transaction_details.product_name')
+            ->orderByDesc('qty')
+            ->limit(3)
+            ->get();
+
+            // ✅ NEW: Format the list into HTML for the email
+            // This turns the array into: "<ul><li>Product A: 10</li><li>Product B: 5</li></ul>"
+            if ($topProducts->isEmpty()) {
+                $formattedTopProducts = "<i>No sales recorded for this period.</i>";
+            } else {
+                $formattedTopProducts = "<ul>";
+                foreach ($topProducts as $item) {
+                    $formattedTopProducts .= "<li><strong>{$item->product_name}</strong>: {$item->qty} units</li>";
+                }
+                $formattedTopProducts .= "</ul>";
+            }
+
+        // 4. Prepare Payload
         $payload = [
-            'date' => $title, // Pass the dynamic title as the "date" field for the email
+            'title' => $title,
+            'date' => $dateLabel,
             'total_revenue' => '₱' . number_format($totalRevenue, 2),
             'total_transactions' => $totalTransactions,
+            'top_products_html' => $formattedTopProducts,
             'status' => "Auto-generated ($type)"
         ];
 
         try {
             // 4. Send to n8n Webhook
             // (Use your current working URL)
-            $n8nWebhookUrl = 'https://puo6kunwjpksppzazxfmtpzp.hooks.n8n.cloud/webhook-test/daily-report'; 
+            $n8nWebhookUrl = 'http://localhost:5678/webhook-test/daily-report'; 
 
             $response = Http::timeout(60)->post($n8nWebhookUrl, $payload);
 

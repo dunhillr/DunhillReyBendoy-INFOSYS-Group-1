@@ -93,26 +93,29 @@ $(function() {
 
     // 3. ✅ NEW: Automation Dropdown Logic
     $('.send-report-item').on('click', function(e) {
-        e.preventDefault();
+    e.preventDefault();
 
-        const type = $(this).data('type'); // Get 'daily', 'weekly', or 'monthly'
-        const url = "{{ route('reports.send-report') }}"; // Hardcoded for simplicity here since it's same route
+    const type = $(this).data('type');
+    const url = $(this).data('route'); 
 
-        // Show loading (Optional: use Swal loading state for cleaner UI)
-        Swal.fire({
-            title: 'Sending ' + type + ' report...',
-            didOpen: () => { Swal.showLoading() }
-        });
+    // 🔍 DEBUGGING: Check what is happening in the Console
+    console.log("Type:", type);
+    console.log("Target URL:", url); // If this says 'undefined', that's the problem!
 
+    if (!url) {
+        alert("Error: The URL is missing!");
+        return;
+    }
+    
         $.ajax({
-            url: '/sales-overview/send-report', // Or use window.routes if setup
+            url: url, // ✅ Use the variable, not the hardcoded string
             type: 'POST',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
-                type: type // Pass the type
+                type: type
             },
             success: function(response) {
-                Swal.close(); // Close loader
+                Swal.close();
                 if (response.success) {
                     Swal.fire({
                         icon: 'success',
@@ -127,6 +130,7 @@ $(function() {
             },
             error: function(xhr) {
                 Swal.close();
+                console.error(xhr.responseText); // Helpful for debugging
                 Swal.fire({ icon: 'error', title: 'Error', text: 'Could not connect to server.' });
             }
         });
