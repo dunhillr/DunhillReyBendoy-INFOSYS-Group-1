@@ -78,29 +78,43 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-
         try {
+            // 1. Get or Create Category
             $category = Category::firstOrCreate([
                 'name' => $request->validated('category')
             ]);
 
+            // 2. Create the Product via Relationship
             $category->products()->create([
-                'name' => $request->validated('name'),
-                'net_weight' => $request->validated('net_weight'),
-                'net_weight_unit_id' => $request->validated('net_weight_unit_id'), // Corrected key
-                'price' => $request->validated('price'),
+                'name'               => $request->validated('name'),
+                'net_weight'         => $request->validated('net_weight'),
+                'net_weight_unit_id' => $request->validated('net_weight_unit_id'),
+                'price'              => $request->validated('price'),
+                
+                // ✅ ADDED: Capture quantity (stock)
+                'quantity'           => $request->validated('quantity'), 
+
+                // ✅ ADDED: Explicitly set as active so it appears immediately
+                'is_active'          => 1, 
             ]);
 
-            // Check for the 'stay' parameter in the request
+            // 3. Handle Redirects
             if ($request->has('stay')) {
-                return redirect()->back()->with('success', 'Product updated successfully!');
+                // 📝 FIXED TYPO: Changed "updated" to "added"
+                return redirect()->back()->with('success', 'Product added successfully!');
             }
 
             return redirect()->route('products.index')->with('success', 'Product added successfully!');
 
         } catch (\Illuminate\Database\QueryException $e) {
+            // 4. Improved Error Handling (Optional but recommended)
+            // If the error code is '23000', it's a Duplicate Entry constraint violation
+            if ($e->getCode() == '23000') {
+                 return redirect()->back()->with('error', 'A product with this name already exists. Check the archive?')->withInput();
+            }
             
-            return redirect()->back()->with('error', 'A product with this combination of attributes already exists.')->withInput();
+            // If it's a different error, throw it so you can debug it (don't hide real bugs!)
+            throw $e; 
         }
     }
     /**
@@ -257,15 +271,22 @@ class ProductController extends Controller
                 return $product->unit ? $product->unit->name : ''; 
             })
             
-            ->addColumn('actions', fn($p) => '
-                <button class="btn btn-success btn-sm restore-product shadow-sm" 
-                        data-id="' . $p->id . '" 
-                        data-bs-toggle="tooltip" 
-                        title="Restore this product">
-                    <i class="fas fa-trash-restore me-1"></i> Restore
-                </button>
-            ')
-            ->rawColumns(['actions'])
+            ->addColumn('actions', function($p) {
+                // ✅ 1. Let Laravel generate the correct full URL (handles localhost, ports, subfolders automatically)
+                $restoreUrl = route('products.restore', $p->id); 
+
+                // ✅ 2. Add 'data-route' to the button HTML
+                return '
+                    <button class="btn btn-success btn-sm restore-product shadow-sm" 
+                            data-id="' . $p->id . '" 
+                            data-route="' . $restoreUrl . '"  
+                            data-bs-toggle="tooltip" 
+                            title="Restore this product">
+                        <i class="fas fa-trash-restore me-1"></i> Restore
+                    </button>
+                ';
+            })
+                ->rawColumns(['actions'])
             ->make(true);
     }
 

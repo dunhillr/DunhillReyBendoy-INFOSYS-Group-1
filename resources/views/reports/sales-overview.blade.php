@@ -59,18 +59,21 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <button class="dropdown-item send-report-item" data-type="daily">
-                                        <i class="fas fa-calendar-day me-2 text-muted"></i>Daily Report
+                                    <button class="dropdown-item send-report-item" 
+                                            data-type="daily" 
+                                            data-route="{{ route('reports.send-report') }}"> <i class="fas fa-calendar-day me-2 text-muted"></i>Daily Report
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="dropdown-item send-report-item" data-type="weekly">
-                                        <i class="fas fa-calendar-week me-2 text-muted"></i>Weekly Report
+                                    <button class="dropdown-item send-report-item" 
+                                            data-type="weekly" 
+                                            data-route="{{ route('reports.send-report') }}"> <i class="fas fa-calendar-week me-2 text-muted"></i>Weekly Report
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="dropdown-item send-report-item" data-type="monthly">
-                                        <i class="fas fa-calendar-alt me-2 text-muted"></i>Monthly Report
+                                    <button class="dropdown-item send-report-item" 
+                                            data-type="monthly" 
+                                            data-route="{{ route('reports.send-report') }}"> <i class="fas fa-calendar-alt me-2 text-muted"></i>Monthly Report
                                     </button>
                                 </li>
                             </ul>

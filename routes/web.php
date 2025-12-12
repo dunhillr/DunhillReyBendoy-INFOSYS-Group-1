@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('archived', [ProductController::class, 'archived'])->name('archived');
         Route::get('archived/data', [ProductController::class, 'getArchivedData'])->name('archived.data');
+
+        // ✅ NEW (Must use 'product' to match the controller variable)
+        Route::post('{product}', [ProductController::class, 'destroy'])->name('destroy');
     });
 
 
